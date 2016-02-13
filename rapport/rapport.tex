@@ -34,7 +34,7 @@
 
 %  Mise en place des pieds de page et en-tÃªtes.
 \pagestyle{fancy}
-\lhead{QuokkaLight} % Top left header
+\lhead{r007K17} % Top left header
 \chead{Ducky the LKM Rootkit} % Top center head
 \rhead{Master CSI} % Top right header
 \lfoot{\lastxmark} % Bottom left footer
@@ -101,8 +101,12 @@
 \Large \@author
 \par
 \end{flushright}
-\vspace{1cm}
+\vspace{2cm}
+\begin{center}
+\includegraphics[width=0.5\linewidth]{img/logo_blk.png} 
+\end{center}
 \vfill
+
 \vfill
 \bas{}{\@location, le 21 Mars 2016}{}
 }%
@@ -114,8 +118,6 @@
 \def\location#1{\def\@location{#1}}
 \def\blurb#1{\def\@blurb{#1}}
 \date{\today}
-\author{}
-\title{}
 \location{Bordeaux}\blurb{}
 \makeatother
 \title{Programmation d'un LKM rootkit}
