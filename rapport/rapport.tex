@@ -156,7 +156,7 @@ Ducky the LKM Rootkit
 
 \section{Introduction}
 
-Lorem
+	
 
 \section{Rootkits  - quésaco ?}
 
@@ -164,18 +164,21 @@ Lorem
 
 \section{Injection - Comment le rootkit est injecté en mémoire ?}
 
-Lorem
+Nous allons expliquer dans cette partie deux méthodes utilisées pour injecter un rootkit au sein du kernel. Nous avons d'abord tenté une approche avec /dev/kmem mais comme vous pourrez le lire plus en détaille, un patch empêche maintenant sont utilisation. Nous détaillons quand même cette méthode car elle fait partie du processus qui nous à amené à construire un LKM rootkit. 
 
-	\subsection{Méthode : /dev/kmem}
+	\subsection{Injection via /dev/mem}
 		\subsubsection{Explication}
 	
-			Lorem
-		
+			/dev/mem est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principale est de pouvoir par exemple patché le système rapidement sans avoir à écrire un driver kernel. Comme on peut très vite l'imaginer, /dev/mem a été un point d'entré pour injecter du code malicieux.	L'attaquant va pour cela ciblé la table des appels systèmes en utilisant l'IDT (Interupt Descriptor Table). Il va ensuite changé les entrées de la table système pour qu'elle sur les fonctions du rootkits. Une autre technique consiste à copier la tables des appels système, la modifier et faire pointé le gestionnaire des appels système vers cette nouvelle table et ainsi laisser la table original inchangé.  
+			
+			L'avantage de cette méthode est qu'elle est très discrète par rapport à une injection LKM, en effet le rootkit ne se situe pas directement sur le disque de la machine mais il est présent dans mémoire volatile, ce qui fait qu'une analyse forensic doit pousser son investigation jusque dans la mémoire RAM pour trouver le rootkit.  
+			
+			 
 		\subsubsection{Contre-mesures}
-	
-			Lorem
+			
+			Depuis les versions 2.6.26 du kernel linux une options activé par défaut, CONFIG\_STRICT\_DEVMEM qui limite l'accès à /dev/mem au premier megabyte. Cela permet d'accéder aux périphériques PCI et certaines régions du BIOS ce qui est suffisant pour les applications qui ont besoins d'utiliser /dev/mem et empêche les applications l'injection de code malicieuses.
 
-	\subsection{Méthode : LKM}
+	\subsection{Injection via un LKM}
 		\subsubsection{Explication}
 			Lorem
 		\subsubsection{Contre-mesures}
