@@ -123,8 +123,7 @@
 \location{Bordeaux}
 \blurb{
 Université de Bordeaux\\
-Faculté de Sciences et Techniques\\
-Ducky the LKM Rootkit
+Faculté de Sciences et Techniques
 }%
 
 %----------------------------------------------------------------------------------------
@@ -156,30 +155,28 @@ Ducky the LKM Rootkit
 
 \section{Introduction}
 
-	% Dans cet article, no
-	% Spécifier que l'on se cantonne à Linux
+	Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Linux Kernel Module) rootkit pour Linux v4.x.x. \\
+
+	Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappelerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Enfin, nous expliquerons les fonctionnalités mise à disposition par notre rootkit.
 
 \section{Définition et évolution des rootkits}
 
-	Afin de compromettre une machine, un attaquant passe généralement par la même série d'étapes. Une fois que des vulnérabilités dans le système ont été identifiées, l'attaquant les exploite afin de prendre la main sur le système jusqu'à compromettre entièrement ce dernier afin d'avoir les droits de super-utilisateur. \\
+	Afin de compromettre une machine, un attaquant passe généralement par la même série d'étapes. Une fois que des vulnérabilités dans le système ont été identifiées, l'attaquant les exploite afin de prendre la main sur le système jusqu'à compromettre entièrement ce dernier afin d'avoir les droits de super-utilisateur.
 	Cependant, l'exploitation de failles dans un système ne peut être considéré comme un moyen sûr pour accéder à une machine, car le simple fait de corriger les vulnérabilités empêcherait d'y accéder à nouveau. C'est pourquoi il est nécessaire de faire persister l'accès après la compromission, ce qui est rendu possible par l'utilisation de rootkits.\\
-	\\
 	
 	Les premiers types de rootkits utilisés étaient des ensembles de programmes qui permettaient de substituer les outils d'administration standard tels que ls, ps, etc. Ainsi, l'intrus avait le contrôle sur les sorties de se programme et pouvait cacher l'activité malicieuse qui se passait sur la machine. Cependant, il devenait fastidieux de cacher la compromission de la machine à l'administrateur légitime. Ce dernier pouvait utiliser plusieurs programmes effectuant la même action pour recouper les informations et ainsi découvrir des différences entre les résultats retournés révélant ainsi la présence d'un rootkit.\\
-	\\
 	
 	Les attaquants se sont alors rendus compte qu'il était inutile de réécrire toute une suite de programmes, ce qui peut devenir très conséquent en terme de taille et en temps de développement. Il suffit de remonter aux fonctions utilisées par tous ces programmes d'administration : les appels systèmes. En supposant que l'intrus ait accès au kernel, il est possible d'intercepter les appels systèmes pour les rediriger vers des fonctions malveillantes afin de cacher la compromission de la machine. A partir du moment où l'attaquant a le contrôle sur le noyau du système, il devient difficile de détecter de manière fiable un rootkit, car les systèmes de sécurité opèrent au même niveau que ce dernier et des fonctions que l'on peut penser digne de confiance peuvent retourner des résultats falsifiés. \\
-	C'est ce type de rootkit que nous allons étudier par la suite, notamment les rootkits s'injectant dans le système sous forme de modules kernel.\\
-	\\
+	C'est ce type de rootkit que nous allons étudier par la suite, notamment les rootkits s'injectant dans le système sous forme de modules kernel.
 
 	% Petite partie sur les bootkits
 
 
 \section{Injection - Comment le rootkit est injecté en mémoire ?}
 
-Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à la machine.\\
+	Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à la machine.\\
 
-Afin de développer \texttt{rkduck} nous nous sommes, dans un premier temps, tournés vers l'injection basée sur \texttt{/dev/mem}. Cependant, un patch de sécurité empêche son utilisation sur les versions 4.x.x du noyau Linux, ce qui fait que nous nous sommes finalement tournés vers la construction d'un LKM rootkit.
+	Afin de développer \texttt{rkduck} nous nous sommes, dans un premier temps, tournés vers l'injection basée sur \texttt{/dev/mem}. Cependant, un patch de sécurité empêche son utilisation sur les versions 4.x.x du noyau Linux, ce qui fait que nous nous sommes finalement tournés vers la construction d'un LKM rootkit.
 
 	\subsection{Injection via /dev/mem}
 		\subsubsection{Explication}
@@ -245,7 +242,7 @@ Afin de développer \texttt{rkduck} nous nous sommes, dans un premier temps, tou
 		
 \section{Détection du rooktit}
 	
-	-> honey pote page 12
+	-> honeypot page 12
 	
 			
 \section{Conclusion}
