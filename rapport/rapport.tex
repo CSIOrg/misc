@@ -35,7 +35,7 @@
 %  Mise en place des pieds de page et en-tÃªtes.
 \pagestyle{fancy}
 \lhead{r007K17} % Top left header
-\chead{Ducky the LKM Rootkit} % Top center head
+\chead{rkduck the LKM Rootkit} % Top center head
 \rhead{Master CSI} % Top right header
 \lfoot{\lastxmark} % Bottom left footer
 \cfoot{} % Bottom center footer
@@ -153,6 +153,20 @@ Faculté de Sciences et Techniques
 \newcommand*{\escapeI}[1]{\texttt{\expandafter\string\csname #1\endcsname}}
 \newcommand*{\escapeII}[1]{\texttt{\char`\\#1}}
 
+\thispagestyle{empty}
+\section*{Abstract}
+	Dans la continuité des travaux réalisés sur les rootkits sur les kernel 2.6.x et 3.x
+	x nous avons décider de réaliser une étude des techniques d'injection de rootkits sur les kernel 4.x.x. Il n'y a en effet très peux de ressources récentes traitant du sujet, les codes open-sources présent sur le l'Internet étant trop souvent dépréciés par rapport aux changements de l'API du kernel version 4.x.x. Vous retrouverez dans la bibliographie l'ensemble des ressources, articles qui nous ont aidés dans le développement et la conception du rootkit \texttt{rkduck}. L'ensemble de notre travail est disponible sur l'organisation github QuokkaLight.
+	
+	\vspace{2cm}
+	\vspace{2cm}
+	\begin{center}
+\includegraphics[width=0.5\linewidth]{img/logo_blk.png} 
+\end{center}
+	
+\newpage
+
+
 \section{Introduction}
 
 	Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Linux Kernel Module) rootkit pour Linux v4.x.x. \\
@@ -181,14 +195,14 @@ Faculté de Sciences et Techniques
 	\subsection{Injection via /dev/mem}
 		\subsubsection{Explication}
 	
-			/dev/mem est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principale est de pouvoir par exemple patché le système rapidement sans avoir à écrire un driver kernel. Comme on peut très vite l'imaginer, /dev/mem a été un point d'entré pour injecter du code malicieux.	L'attaquant va pour cela ciblé la table des appels systèmes en utilisant l'IDT (Interupt Descriptor Table). Il va ensuite changé les entrées de la table système pour qu'elle sur les fonctions du rootkits. Une autre technique consiste à copier la tables des appels système, la modifier et faire pointé le gestionnaire des appels système vers cette nouvelle table et ainsi laisser la table original inchangé.  
+			\texttt{/dev/mem} est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principale est de pouvoir par exemple patché le système rapidement sans avoir à écrire un driver kernel. Comme on peut très vite l'imaginer, \texttt{/dev/mem} a été un point d'entré pour injecter du code malicieux.	L'attaquant va pour cela ciblé la table des appels systèmes en utilisant l'IDT (Interupt Descriptor Table). Il va ensuite changé les entrées de la table système pour qu'elle sur les fonctions du rootkits. Une autre technique consiste à copier la tables des appels système, la modifier et faire pointé le gestionnaire des appels système vers cette nouvelle table et ainsi laisser la table original inchangé.  
 			
 			L'avantage de cette méthode est qu'elle est très discrète par rapport à une injection LKM, en effet le rootkit ne se situe pas directement sur le disque de la machine mais il est présent dans mémoire volatile, ce qui fait qu'une analyse forensic doit pousser son investigation jusque dans la mémoire RAM pour trouver le rootkit. 
 			
 			 
 		\subsubsection{Contre-mesures}
 			
-			Depuis les versions 2.6.26 du kernel linux une options activé par défaut, CONFIG\_STRICT\_DEVMEM qui limite l'accès à /dev/mem au premier megabyte. Cela permet d'accéder aux périphériques PCI et certaines régions du BIOS ce qui est suffisant pour les applications qui ont besoins d'utiliser /dev/mem et empêche les applications l'injection de code malicieuses. 
+			Depuis les versions 2.6.26 du kernel linux une options activé par défaut, \texttt{CONFIG\_STRICT\_DEVMEM} qui limite l'accès à \texttt{/dev/mem} au premier megabyte. Cela permet d'accéder aux périphériques PCI et certaines régions du BIOS ce qui est suffisant pour les applications qui ont besoins d'utiliser \texttt{/dev/mem} et empêche les applications l'injection de code malicieuses. 
 
 	\subsection{Injection via un LKM}
 		\subsubsection{Explication}
@@ -206,7 +220,7 @@ Faculté de Sciences et Techniques
 	
 	La persistance du rootkit correspond en quelque sorte à sa durée de vie une fois injecté dans le kernel. Elle est très importante, le but du rootkit étant de récupérer des informations sensibles etc... Sa persistance au sein du système est donc primordiale. 
 	
-	Lors d'un redémarrage les modules ajoutés manuellement ne sont pas rechargés, il faut l'indiquer manuellement au système. Nous avons donc écrit un script bash qui va écrire le nom de notre module dans un fichier spécifique '/etc/modules/' (le nom et chemin du fichier n'est pas le même suivant l'OS) et placer notre rootkit compilé dans /lib/modules/../kernel/drivers/directory/. Pour perdre un peu plus l'utilisateur de la machine qui pourrait chercher manuellement dans la liste des dossiers drivers un nom suspect qui pourrait le mettre sur la piste d'une activité malicieuse, le script s'occupe de placer le rooktit compilé au sein d'un dossier légitime exemple : /kernel/drivers/tty/rkduck.ko. Le nom du dossier légitime peut être changé par l'attaquant avant l'injection du module, il pourra pendre soin de renommer aussi le rootkit compilé en un nom qui parait légitime du style audio.ko etc.
+	Lors d'un redémarrage les modules ajoutés manuellement ne sont pas rechargés, il faut l'indiquer manuellement au système. Nous avons donc écrit un script bash qui va écrire le nom de notre module dans un fichier spécifique \texttt{/etc/modules/} (le nom et chemin du fichier n'est pas le même suivant l'OS) et placer notre rootkit compilé dans \texttt{/lib/modules/../kernel/drivers/directory/}. Pour perdre un peu plus l'utilisateur de la machine qui pourrait chercher manuellement dans la liste des dossiers drivers un nom suspect qui pourrait le mettre sur la piste d'une activité malicieuse, le script s'occupe de placer le rooktit compilé au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier légitime peut être changé par l'attaquant avant l'injection du module, il pourra pendre soin de renommer aussi le rootkit compilé en un nom qui parait légitime du style audio.ko etc.
 	
 	Lorsque le rootkit est chargé pour la première fois le script s'exécute et à chaque démarrage de la machine notre rootkit sera maintenant chargé au sein du kernel, la persistance est donc acquise et nous pouvons maintenant présenter les différentes fonctionnalités de notre rootkit.
 	
@@ -222,20 +236,66 @@ Faculté de Sciences et Techniques
 	\subsection{Backdoor}
 	
 		\subsubsection{Bind shell}
-			lorem
+			
+			Un bind-shell correspond dans notre cas à un serveur socket qui attend une connexion de la part de l'attaquant pour pouvoir exécuter des commandes shell et renvoyer le résultat. Dans cette optique nous avons mis en place un mini-serveur socket qui va simplement attendre les connexions entrantes sur un port spécifique fixé lors de l'injection du rootkit. Une fois la connexion établie, le serveur va attendre les commandes envoyées par l'attaquant, exécuter ces commandes, récupérer le résultat et renvoyer le tout au destinataire. 
+			
+\begin{figure}[ht!]	
+\begin{center}
+\includegraphics{./img/bind-shell.png}
+
+\caption[dsfsdf]{bind shell}
+\end{center}
+\end{figure}
+			
+			L'exécution des commandes se fait via l'API\texttt{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, nous avons donc redirigé la sortie standard vers un fichier temporaire \texttt{/tmp/.cmd}, le résultat est lu puis renvoyé. Lorsque la connexion est interrompue avec l'attaquant le fichier qui contient le résultat de la dernière commande est supprimé.
+			
 		\subsubsection{Reverse shell}
-			lorem	
+			
+			Le reverse shell consiste à l'opération inverse du bind-shell, ce n'est pas le rootkit qui va attendre une connexion mais l'attaquant qui va se mettre en mode "écoute". Le rootkit quand à lui va initier la connexion vers l'attaquant. (L'adresse ip doit donc être indiquer avant que le rootkit soit injecté). Lorsqu'il reçoit les commandes shell envoyées par l'attaquant le rootkit va se comporter exactement comme le bind shell, c'est à dire copier le résultat dans un fichier temporaire, lire le fichier et renvoyer le résultat.
+			
+\begin{figure}[ht!]	
+\begin{center}
+\includegraphics{./img/reverse-shell.png}
+
+\caption[dsfsdf]{reverse shell}
+\end{center}
+\end{figure}
+			
+		\subsubsection{Activation des backdoors}
+			
+Tout d'abord, l'attaquant choisit d'activer l'une des deux backdoor suivant la situation. Il peut activer et désactiver les backdoors via \textbf{crumb} comme nous l'expliquerons dans la partie (voir section~\ref{sec:crumb}). 
+Ensuite il serait inconscient de laisser un bind-shell en écoute toute la journée si on veut rester le plus discret possible. Pour le reverse-shell il faut aussi lui donner un signal pour qu'il puisse se connecter à l'attaquant, nous avons pour cela décidé que la backdoor pourrait s'activer en envoyant un paquet ICMP avec un payload spécifique. Ce payload serait seulement connu de l'attaquant et seul lui peut donc se connecter à sa backdoor.
+
+Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va intercepter les paquets et regarder le type et le payload contenu, si il voit par exemple passer un paquet ICMP avec un payload spécifique et une taille de 10 alors il activera la backdoor :
+\begin{itemize}
+ \item pour le reverse shell le rootkit va essayé de se connecter à l'ip de l'attaquant
+ \item pour le bin-shell le rootkit va commencer à écouter et attendre une connexion venant de l'attaquant
+\end{itemize}
+
+	Enfin il est possible que les paquets soient filtrés par un firewall externe, par exemple les paquets ICMP comportant un payload pourraient êtres rejetés et l'attaquant n'aurait aucun moyen d'accéder aux backdoors. Nous avons donc mis en place un timer qui va appeler activer la backdoor toutes les 12h. Le temps est bien sur configurable par l'utilisateur à l'injection du rootkit.
+		
+\begin{figure}[ht!]	
+\begin{center}
+\includegraphics{./img/timer-shell.png}
+
+\caption[dsfsdf]{timer shell}
+\end{center}
+\end{figure}
+					
+			
 		\subsubsection{SSH backdoor}
 		
-			Afin de permettre à l'attaquant d'avoir encore plus la main sur la machine corrompu et dans le cas ou le défenseur désactiverait tout les ports non conventionnels, nous avons mis en place une backdoor ssh que l'attaquant est libre d'activer ou non. Elle va tout simplement mettre sa clé publique  dans le fichier ~/.ssh/authorized\_keys de root, il peut ainsi tout simplement se connecter en ssh avec l'utilisateur root. Évidement cela suppose que la machine cible est accessible depuis l'extérieur et que root puisse se connecter en ssh (option qui peut être désactivé dans les fichiers de configuration ssh).
+			Afin de permettre à l'attaquant d'avoir encore plus la main sur la machine corrompu et dans le cas ou le défenseur désactiverait tout les ports non conventionnels, nous avons mis en place une backdoor ssh que l'attaquant est libre d'activer ou non. Elle va tout simplement mettre sa clé publique  dans le fichier \texttt{~/.ssh/authorized\_keys} de root, il peut ainsi tout simplement se connecter en ssh avec l'utilisateur root. Évidement cela suppose que la machine cible est accessible depuis l'extérieur et que root puisse se connecter en ssh (option qui peut être désactivé dans les fichiers de configuration ssh).
 			
-			Nous considérons cette "backdoor" comme options de secours dans le cas ou les autres ne fonctionnerais plus. Elle n'est pas très robuste car il suffit au défenseur de supprimer la clé public  dans le fichiers $authorized\_keys$ mais encore faut il qu'il regarde se fichier et détermine qu'elle clé est la mauvaise. 
+			Nous considérons cette "backdoor" comme options de secours dans le cas ou les autres ne fonctionnerais plus. Elle n'est pas très robuste car il suffit au défenseur de supprimer la clé public  dans le fichiers \texttt{authorized\_keys} mais encore faut il qu'il regarde se fichier et détermine qu'elle clé est la mauvaise. 
 			Si nous avons rajouté cette option ssh c'est parce qu'elle est utile si on sait que le défenseur a détecté nos traces (fermeture des ports, filtrage réseaux, commandes  suspects netstat etc), il y a peu de chance qu'il ferme aussi le port ssh. L'attaquant peux alors se connecter directement en ssh et supprimer le rootkit avant que la victime n'est le temps de le récupérer pour une analyse forensic. Ou si la discrétion n'est pas la priorité, l'attaquant peut décider changer les ports, le rootkit de place, supprimer le filtrage  etc. Le but étant comme nous l'avons évoqué plus haut de "perdre" un maximum le défenseur ou de rester le plus discret possible... 
+			
 			
 		\subsubsection{Cacher les connexions réseaux}
 			lorem
 			
 	\subsection{Contrôle du rootkit depuis userland}
+	\label{sec:crumb}
 		lorem
 	\subsection{Keylogger}
 		lorem
