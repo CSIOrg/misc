@@ -188,29 +188,59 @@ Faculté de Sciences et Techniques
 
 \section{Injection - Comment le rootkit est injecté en mémoire ?}
 
-	Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à la machine.\\
+	Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à cette dernière.\\
 
 	Afin de développer \texttt{rkduck} nous nous sommes, dans un premier temps, tournés vers l'injection basée sur \texttt{/dev/mem}. Cependant, un patch de sécurité empêche son utilisation sur les versions 4.x.x du noyau Linux, ce qui fait que nous nous sommes finalement tournés vers la construction d'un LKM rootkit.
 
 	\subsection{Injection via /dev/mem}
-		\subsubsection{Explication}
 	
-			\texttt{/dev/mem} est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principale est de pouvoir par exemple patché le système rapidement sans avoir à écrire un driver kernel. Comme on peut très vite l'imaginer, \texttt{/dev/mem} a été un point d'entré pour injecter du code malicieux.	L'attaquant va pour cela ciblé la table des appels systèmes en utilisant l'IDT (Interupt Descriptor Table). Il va ensuite changé les entrées de la table système pour qu'elle sur les fonctions du rootkits. Une autre technique consiste à copier la tables des appels système, la modifier et faire pointé le gestionnaire des appels système vers cette nouvelle table et ainsi laisser la table original inchangé.  
-			
-			L'avantage de cette méthode est qu'elle est très discrète par rapport à une injection LKM, en effet le rootkit ne se situe pas directement sur le disque de la machine mais il est présent dans mémoire volatile, ce qui fait qu'une analyse forensic doit pousser son investigation jusque dans la mémoire RAM pour trouver le rootkit. 
-			
-			 
-		\subsubsection{Contre-mesures}
-			
-			Depuis les versions 2.6.26 du kernel linux une options activé par défaut, \texttt{CONFIG\_STRICT\_DEVMEM} qui limite l'accès à \texttt{/dev/mem} au premier megabyte. Cela permet d'accéder aux périphériques PCI et certaines régions du BIOS ce qui est suffisant pour les applications qui ont besoins d'utiliser \texttt{/dev/mem} et empêche les applications l'injection de code malicieuses. 
+		\texttt{/dev/mem} est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principal d'un tel fichier est de pouvoir accéder directement à la mémoire sans écrire un driver kernel. Il devient alors plus aisé et rapide d'examiner la mémoire et de patcher le sytème. \texttt{/dev/mem} est un point d'entrée pour injecter du code malicieux, car, si un attaquant peut écrire dans \texttt{/dev/mem}, alors il pourra modifier des parties du kernel, notamment la table des appels systèmes ou encore les fonctions liées au \texttt{Virtual File System}, comme nous le verrons par la suite.\\
+		
+		L'intérêt de cette méthode est qu'elle est plus discrète que, par exemple, une injection via un module noyau. En effet, si on suppose qu'il est possible de charger un LKM et d'écrire dans \texttt{/dev/mem}, lorsqu'on injecte un LKM il est toujours possible d'effectuer une analyse comportementale ou bien de rajouter une vérification d'authenticité par signature cryptographique, alors que dans le cas de \texttt{/dev/mem}, l'injection est directe dans la mémoire kernel et il n'y a pas d'interface qui pourrait se charger de vérifier le caractère malveillant ou non du code injecté.\\
+		
+		Il existe également un fichier nommé \texttt{/dev/kmem}. C'est essentiellement le même fichier que \texttt{/dev/mem} sauf que dans le cas de \texttt{/dev/kmem} on accède à la mémoire virtuelle du kernel et non à la mémoire physique. La mémoire kernel possède peut fonctionner suivant deux modes. Le premier est un décalage par rapport à la mémoire physique, par exemple sur \texttt{x86} l'adresse physique \texttt{0x00000001} est mappée sur l'adresse virtuelle kernel \text{0xc0000001}. Le second mode repose sur la routine \texttt{vmalloc} qui est l'un des principaux mécanismes d'allocation de mémoire dynamique. Dans ce cas, le kernel ne sera pas contigüe en mémoire physique, même ce dernier verra les adresses virtuelles comme contigües.\\
+		
+		Nous avons cependant mis de côté ce type d'injection, car elle est aujourd'hui désactivée par défaut dans la plupart des distributions, notamment dans \textit{Jessie} la version 8 de Debian sur laquelle nous développons et effectuons la plupart de nos tests.
+		
+		De manière plus générale, depuis les versions 2.6.26 du kernel linux une options activé par défaut, \texttt{CONFIG\_STRICT\_DEVMEM} qui limite l'accès à \texttt{/dev/mem} au premier megabyte. Cela permet d'accéder aux périphériques PCI et certaines régions du BIOS ce qui est suffisant pour les applications qui ont besoins d'utiliser \texttt{/dev/mem} et empêche les applications d'injection du code malicieux. 
 
-	\subsection{Injection via un LKM}
-		\subsubsection{Explication}
-			Lorem
-		\subsubsection{Contre-mesures}
-			Lorem
+		%\texttt{/dev/mem} est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principale est de pouvoir par exemple patché le système rapidement sans avoir à écrire un driver kernel. Comme on peut très vite l'imaginer, \texttt{/dev/mem} a été un point d'entré pour injecter du code malicieux.	L'attaquant va pour cela ciblé la table des appels systèmes en utilisant l'IDT (Interupt Descriptor Table). Il va ensuite changé les entrées de la table système pour qu'elle sur les fonctions du rootkits. Une autre technique consiste à copier la tables des appels système, la modifier et faire pointé le gestionnaire des appels système vers cette nouvelle table et ainsi laisser la table original inchangé.  
+		%
+		%L'avantage de cette méthode est qu'elle est très discrète par rapport à une injection LKM, en effet le rootkit ne se situe pas directement sur le disque de la machine mais il est présent dans mémoire volatile, ce qui fait qu'une analyse forensic doit pousser son investigation jusque dans la mémoire RAM pour trouver le rootkit. 
+		%
+
+	\subsection{Injection via un Loadable Kernel Module (LKM)}
+
+		Les \textit{Loadable Kernel Modules} sont un moyen pratique de modifier le kernel pendant qu'il s'exécute. Ils permettent ainsi de rajouter ou de supprimer des fonctionnalités (comme des drivers) au noyau sans pour autant redémarrer le système ou le recompiler. \\
+		
+		Ces modules s'exécutent en espace noyau et en possède donc les droits d'exécution. Si un attaquant est capable d'injecter un tel module, alors il pourra avoir la main sur le kernel et, a fortiori, sur l'ensemble de la machine. De la même manière qu'avec l'injection via \texttt{/dev/mem} il est possible de s'attaquer aux appels systèmes et au VFS pour falsifier les informations que l'administrateur légitime de la machine tenterait d'obtenir et ainsi rendre notre rootkit invisible. \\
+		
+		Un module kernel a accès aux mêmes fonctionnalités que le kernel, ce qui fait que sa compilation requiert la source du noyau dans lequel on veut l'injecter. Cela peut devenir problématique, car les sources ne sont pas nécessairemment disponibles sur la machine cible. Il faut alors les télécharger, ce qui peut attirer l'attention de l'utilisateur légitime, ou bien compiler le LKM sur une autre machine. \\
+		
+		Une fois que le module a été inséré dans le système, il est, à ce stade, très facile de le détecter. En effet, il est possible de lister les LKM actuellement chargés dans le noyau à l'aide de commandes telles que \texttt{lsmod}, \texttt{modinfo} ou encore \texttt{ls /sys/module/}. Il faut prendre en compte toutes ces méthodes et faire en sorte que l'utilisateur légitime ne puisse pas  détecter notre rootkit uniquement en affichant une simple liste des modules chargés. \\
+
+		% Paragraphe à vérifier et à préciser
+		Nous nous sommes renseignés sur deux méthodes permettant de supprimer notre rootkit de ces listes.
+
+		La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors de retirer le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} de retirer l'entrée de notre module au niveau du \texttt{VFS} le retirant ainsi du dossier \texttt{/sys/module/}.
+		
+		La seconde méthode consiste à charger le module avant de le retirer, sauf que la fonction de suppression des modules est modifiée par le rootkit. La nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
+		
+		Il existe plusieurs contre-mesures empêchant l'injection de LKM malicieux.
+
+		La solution la plus radicale consiste à compiler un noyau monolithique en y ajoutant, dès le départ, les modules voulus de manière statique tout en désactivant leur insertion dans le système par la suite.
+
+		Une séconde méthode de prévention consiste à n'autoriser le chargement qu'au démarrage de la machine, ce qui est rendu possible grâce à des solutions pourvues par \textit{grsecurity}. Dans ce cas, les modules choisis sont chargés durant la période de boot et, par la suite, un attaquant ne pourra pas insérer un module tant que le système sera en cours d'exécution.
+
+		% A compléter
+		% Si on rajoute un module et qu'on reboot, est-ce que le module sera chargé ?
+		% Est-ce que grsecurity remonte des alertes / crée des logs si ces fichiers sont modifiés ? 
+		% A tester
+		Sinon, comme nous l'avons expliqué précedemment, si l'on ne souhaite pas empêcher l'insertion de LKM, alors il est possible de rajouter des étapes d'authentification et de vérification qui précèderont le chargement du module. En effet, on peut demander un mot de passe à l'utilisateur, rajouter une vérification des modules par signature cryptographique ou encore effectuer automatiquement une analyse statique, voire dynamique, du module avant son insertion.
 	
 \section{Détournement de l'exécution du noyau}	
+
+Nous avons utilisé deux méthodes différentes afin de détourner le fonctionnement du système. La première se base sur la modification des appels systèmes et la seconde sur le détournement des fonctions du \texttt{Virtual File System}.
 
 	\subsection{Détournement des appels systèmes}
 	Lorem
