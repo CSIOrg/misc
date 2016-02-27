@@ -169,7 +169,8 @@ Faculté de Sciences et Techniques
 \newcommand*{\escapeII}[1]{\texttt{\char`\\#1}}
 
 
-\section{Introduction}
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
 
     Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Linux Kernel Module) rootkit pour Linux v4.x.x. \\
 
@@ -188,7 +189,7 @@ Faculté de Sciences et Techniques
     % Petite partie sur les bootkits
 
 
-\section{Injection - Comment le rootkit est injecté en mémoire ?}
+\section{Injection en mémoire}
 
     Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à cette dernière.\\
 
@@ -252,13 +253,13 @@ Nous avons utilisé deux méthodes différentes afin de détourner le fonctionne
 
     \subsection{Détournement du \texttt{Virtual File System}}
     
-        Le \texttt{Virtual File System} (VFS) est une couche de communication se situation entre le kernel et le système de fichier utilisé. Cette couche est une abstraction permettant au kernel de communiquer avec n'importe quel système de fichier (ext3, ext4, etc.), c'est le VFS qui se chargera de traduire les instructions envoyées par le kernel pour qu'elle soit compréhensible par le système de fichier.
+        Le \texttt{Virtual File System} (VFS) est une couche de communication se situant entre le kernel et le système de fichier utilisé. Cette couche est une abstraction permettant au kernel de communiquer avec n'importe quel système de fichier (ext3, ext4, etc.), c'est le VFS qui se chargera de traduire les instructions envoyées par le kernel pour qu'elle soit compréhensible par le système de fichier.
 
-        L'intérêt de s'attaquer au VFS est de pouvoir cacher des fichiers aux yeux de l'utilisateur légitime. Ainsi, on va pouvoir dissimuler de manière relativement furtive des fichiers, des dossiers, mais aussi des processus grâce à des hooks sur des fonctions du VFS. \\
+        L'intérêt de s'attaquer au VFS est de pouvoir cacher des fichiers aux yeux de l'utilisateur légitime. Ainsi, on va pouvoir dissimuler des fichiers, des dossiers, mais aussi des processus grâce à des hooks sur des fonctions du VFS. \\
 
-        Nous allons, dans la suite de cette partie, illustrer nos propos en construisons le système servant à dissimuler des fichiers et des dossiers. Le même principe pourra s'appliquer à la dissimulation de processus.
+        Nous allons, dans la suite de cette partie, illustrer nos propos en construisons le système servant à dissimuler un fichier nommé \texttt{rkduck}. Le même principe pourra se généraliser à une liste de fichiers à cacher, mais aussi s'appliquer à la dissimulation de processus.
 
-        Premièrement, nous allons récupérer un pointeur sur fonction \texttt{iterate} disponible dans la structure \texttt{file\_operations} afin de la détourner. Étant donné que nous souhaitons ici cacher des fichiers, il faudra que ce pointeur soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
+        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} disponible dans la structure \texttt{file\_operations} afin de la détourner. Étant donné que nous souhaitons ici cacher des fichiers, il faudra que ce pointeur soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
 
 \begin{listing}[H]
 \begin{minted}[bgcolor=bg, linenos]{c}
@@ -272,7 +273,7 @@ struct file_operations {
 \label{listing:3}
 \end{listing}
 
-        Pour récupérer un pointeur sur cette fonction, il faut d'abord récupérer un pointeur vers cette structure \texttt{file\_operations} relative à la racine \texttt{/}, ce qui est rendu possible grâce à la fonction \texttt{filp\_open}.\\
+        Pour récupérer un pointeur sur cette fonction, il faut d'abord récupérer un pointeur vers la structure \texttt{file\_operations} relative à la racine \texttt{/}, ce qui est rendu possible grâce à la fonction \texttt{filp\_open}.\\
 
 \begin{listing}[H]
 \begin{minted}[bgcolor=bg, linenos]{c}
@@ -293,7 +294,7 @@ void *vfs_get_iterate(const char *path) {
 \label{listing:3}
 \end{listing}
 
-        Le détournement de la fonction de la fonction \texttt{iterate} va s'effectuer de la manière suivante. Dans un premier temps on va garder une copie du pointeur sur cette fonction que l'on appelera \texttt{original\_iterate}. Grâce à ce pointeur on va pouvoir avoir un accès direct au code de cette dernière, ce qui va nous permettre de le modifier. En effet, on va changer les premières instructions de la fonction pour que cette dernière fasse un saut vers une fonction que l'on contrôle appelée \texttt{hijacked\_iterate}. Il faut également sauvegarder le code de la fonction originale, car cette dernière sera réutilisée plus tard. \\
+        Le détournement de la fonction \texttt{iterate} va s'effectuer de la manière suivante. Dans un premier temps on va garder une copie du pointeur sur cette dernière que l'on appelera \texttt{original\_iterate}. Grâce à ce pointeur on va pouvoir avoir un accès direct à son code, ce qui va nous permettre de le modifier. En effet, on va changer les premières instructions de cette fonction pour qu'elle fasse un saut vers une fonction que l'on contrôle appelée \texttt{hijacked\_iterate}. Il faut également sauvegarder le code de la fonction originale, car cette dernière sera réutilisée plus tard. \\
 
 \begin{figure}[H] 
 \begin{center}
@@ -354,14 +355,16 @@ vfs_hijacked_filldir(struct dir_context *ctx, const char *name,
     Lors d'un redémarrage les modules ajoutés manuellement ne sont pas rechargés, il faut l'indiquer manuellement au système. Nous avons donc écrit un script bash qui va écrire le nom de notre module dans un fichier spécifique \texttt{/etc/modules/} (le nom et chemin du fichier n'est pas le même suivant l'OS) et placer notre rootkit compilé dans \texttt{/lib/modules/../kernel/drivers/directory/}. Pour perdre un peu plus l'utilisateur de la machine qui pourrait chercher manuellement dans la liste des dossiers drivers un nom suspect qui pourrait le mettre sur la piste d'une activité malicieuse, le script s'occupe de placer le rooktit compilé au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier légitime peut être changé par l'attaquant avant l'injection du module, il pourra pendre soin de renommer aussi le rootkit compilé en un nom qui parait légitime du style audio.ko etc.
     
     Lorsque le rootkit est chargé pour la première fois le script s'exécute et à chaque démarrage de la machine notre rootkit sera maintenant chargé au sein du kernel, la persistance est donc acquise et nous pouvons maintenant présenter les différentes fonctionnalités de notre rootkit.
+
+    % A partir du moment où un attaquant a obtenu l'accès à un système, il va souvent chercher à le faire perdurer dans le temps. Afin de faire péréniser cet accès, un rootkit doit être persistant. Il devra donc être capable   
     
 \section{Fonctionnalités du rootkit}
     
-    \subsection{Cacher des dossiers et fichiers}
+    \subsection{Dissimulation de fichiers et de processus}
     
-        \subsubsection{Dossiers}
-            lorem
         \subsubsection{Fichiers}
+            lorem
+        \subsubsection{Processus}
             lorem
             
     \subsection{Backdoor}
@@ -436,10 +439,17 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
     -> honeypot page 12
     
             
-\section{Conclusion}
+
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
     Lorem
-\section{Annexes}
+
+\section*{Annexes}
+\addcontentsline{toc}{section}{Annexes}
     Lorem
-\section{Bibliographie}
+
+\section*{Bibliographie}
+\addcontentsline{toc}{section}{Bibliographie}
     Lorem
+
 \end{document}
