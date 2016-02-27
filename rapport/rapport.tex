@@ -21,6 +21,8 @@
 \usepackage{fancyvrb}
 \usepackage{hyperref}
 \usepackage{amsmath}
+\usepackage{hyperref}
+
 
 % Marges
 \topmargin=-0.45in
@@ -88,7 +90,7 @@
 \thispagestyle{empty}\vbox to \vsize{%
 \haut{}{\@blurb}{}
 \vfill
-\vspace{3cm}
+\vspace{1cm}
 \begin{flushleft}
 \huge \@title
 \end{flushleft}
@@ -99,10 +101,6 @@
 \Large \@author
 \par
 \end{flushright}
-\vspace{2cm}
-\begin{center}
-\includegraphics[width=0.5\linewidth]{img/logo_blk.png} 
-\end{center}
 \vfill
 
 \vfill
@@ -118,7 +116,7 @@
 \date{\today}
 \location{Bordeaux}\blurb{}
 \makeatother
-\title{\textbf{\textit{rkduck} : un kernel rootkit pour Linux 4.x.x}}
+\title{\textbf{\textit{rkduck} : kernel rootkit pour Linux 4.x.x}}
 \author{Thomas Le Bourlot, Maxime Peterlin, Martial Puygrenier}
 \location{Bordeaux}
 \blurb{
@@ -132,6 +130,16 @@ Faculté de Sciences et Techniques
 
 \thispagestyle{empty}
 \maketitle
+% {2cm}
+\begin{abstract}
+	Dans la continuité des travaux réalisés sur les rootkits sur les kernel 2.6.x et 3.x.x nous avons décidé de réaliser une étude des techniques d'injection de rootkits sur les kernels 4.x.x. Très peu de ressources récentes traitent du sujet et les sources des rootkits disponibles sur internet sont très souvent obsolètes suite aux modifications de certaines fonctions entre les différentes versions du noyau Linux. Vous retrouverez dans la bibliographie l'ensemble des ressources et articles qui nous ont aidés dans le développement et la conception du rootkit \texttt{rkduck}. Notre travail est disponible sur l'organisation github \href{https://github.com/QuokkaLight/}{QuokkaLight}.
+\end{abstract}
+% \vspace{2cm}
+
+\vspace{5cm}
+\begin{center}
+\includegraphics[width=0.5\linewidth]{img/logo_blk.png} 
+\end{center}
 \newpage
 
 %----------------------------------------------------------------------------------------
@@ -155,9 +163,7 @@ Faculté de Sciences et Techniques
 
 \thispagestyle{empty}
 \section*{Abstract}
-	Dans la continuité des travaux réalisés sur les rootkits sur les kernel 2.6.x et 3.x
-	x nous avons décider de réaliser une étude des techniques d'injection de rootkits sur les kernel 4.x.x. Il n'y a en effet très peux de ressources récentes traitant du sujet, les codes open-sources présent sur le l'Internet étant trop souvent dépréciés par rapport aux changements de l'API du kernel version 4.x.x. Vous retrouverez dans la bibliographie l'ensemble des ressources, articles qui nous ont aidés dans le développement et la conception du rootkit \texttt{rkduck}. L'ensemble de notre travail est disponible sur l'organisation github QuokkaLight.
-	
+
 	\vspace{2cm}
 	\vspace{2cm}
 	\begin{center}
@@ -223,7 +229,7 @@ Faculté de Sciences et Techniques
 		Nous nous sommes renseignés sur deux méthodes permettant de supprimer notre rootkit de ces listes.
 
 		La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors de retirer le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} de retirer l'entrée de notre module au niveau du \texttt{VFS} le retirant ainsi du dossier \texttt{/sys/module/}.
-		
+
 		La seconde méthode consiste à charger le module avant de le retirer, sauf que la fonction de suppression des modules est modifiée par le rootkit. La nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
 		
 		Il existe plusieurs contre-mesures empêchant l'injection de LKM malicieux.
