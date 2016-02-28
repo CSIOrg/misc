@@ -224,7 +224,7 @@ Faculté de Sciences et Techniques
         % Paragraphe à vérifier et à préciser
         Nous nous sommes renseignés sur deux méthodes permettant de supprimer notre rootkit de ces listes.
 
-        La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors de retirer le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. \textbf{YET Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} de retirer l'entrée de notre module au niveau du \texttt{VFS} le retirant ainsi du dossier \texttt{/sys/module/}.}
+        La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors de retirer le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} va se charger de retirer l'entrée de notre module au niveau du \texttt{VFS}, le retirant ainsi du dossier \texttt{/sys/module/}.
 
         La seconde méthode consiste à charger le module avant de le retirer, sachant que la fonction de suppression des modules a été modifiée par le rootkit. La nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
         
@@ -256,7 +256,9 @@ Nous avons utilisé deux méthodes différentes afin de détourner le fonctionne
 
         Nous allons, dans la suite de cette partie, illustrer nos propos en construisons le système servant à dissimuler un fichier nommé \texttt{rkduck}. Le même principe pourra se généraliser à une liste de fichiers à cacher, mais aussi s'appliquer à la dissimulation de processus.
 
-        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} \textbf{(YET pourquoi iterate, qu'est ce que c'est ?)} disponible dans la structure \texttt{file\_operations} afin de la détourner. Étant donné que nous souhaitons ici cacher des fichiers, il faudra que ce pointeur soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
+        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} afin de la détourner. \texttt{iterate} est une fonction qui est appelé par l'appel système \texttt{getdents} et qui va amorcer la récupération du contenu du dossier passé en argument à \texttt{getdents}. Ainsi, si l'on contrôle cette fonction, on peut décider des résultats renvoyés par celle-ci. 
+
+        Étant donné que nous souhaitons ici cacher des fichiers, il faudra que le pointeur vers \texttt{iterate} soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
 
 \begin{listing}[H]
 \begin{minted}[bgcolor=bg, linenos]{c}
@@ -438,6 +440,25 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
         % Protocole de communication
         % Utilisation
 
+        Une fois que le rootkit est compilé et inséré en mémoire, il efface ses traces et nous n'avons plus le contrôle sur ce dernier. En effet, il devient impossible de le retirer via des commandes classiques telles que \texttt{modprobe} ou \texttt{rmmod} pour pouvoir le modifier et le réinsérer. C'est pourquoi nous avons cherché un moyen de pouvoir communiquer avec le rootkit une fois chargé. Cette solution se présente comme une application en espace utilisateur nommée \texttt{Crumbs}. \\
+
+        Afin de pouvoir communiquer entre l'espace utilisateur et l'espace noyau, nous avons utilisé des \texttt{Netlink} sockets. Au niveau de l'espace utilisateur ces sockets ont une utilisation similaire aux sockets traditionnelles et en espace noyau elles se présentent comme une API pouvant être utilisée par les modules noyau. \\
+
+        Afin d'envoyer des informations depuis \texttt{Crumbs}, nous avons créé un protocole basique. La communication se base sur un modèle maître-esclave où le rootkit ne fera qu'acquitter la réception des commandes envoyées par \texttt{Crumbs}. \\
+        Les commandes sont envoyées au rootkit sous forme de chaînes de caractères possédant le format suivant:
+
+        \texttt{"command\_id:command\_argument"}\\
+
+        \texttt{Crumbs} possède actuellement 9 commandes permettant de contrôler \texttt{rkduck}.
+
+        \begin{figure}[H] 
+        \begin{center}
+        \includegraphics[scale=0.5]{./img/crumbs-help.png}
+
+        \caption[dsfsdf]{Écran d'aide de Crumbs}
+        \end{center}
+        \end{figure}
+
     \subsection{Keylogger}
         lorem
         
@@ -458,5 +479,35 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
 \addcontentsline{toc}{section}{References}
 \bibliographystyle{plain}
 \bibliography{bibli}
+
+\begin{thebibliography}{9}
+
+\bibitem{turbochaos} 
+Tyler Borland.\\
+Modern Linux Rootkits 101,
+\\\texttt{http://turbochaos.blogspot.fr/2013/09/linux-rootkits-101-1-of-3.html}
+
+\bibitem{turbochaos}
+Suterusu: An LKM rootkit targeting Linux 2.6/3.x on x86(\_64), and ARM,
+\\\texttt{https://github.com/mncoppola/suterusu}
+
+\bibitem{turbochaos}
+Éric Lacombe, Frédéric Raynal et Vincent Nicomette.\\
+De l’invisibilité des rootkits : application sous Linux,
+\\\texttt{http://esec-lab.sogeti.com/static/publications/07-sstic-rootkits\_article.pdf}
+
+\bibitem{turbochaos}
+SpaceWalker.\\
+Indetectable Linux Kernel Modules,
+\\\texttt{http://www.ouah.org/spacelkm.txt}
+
+\bibitem{turbochaos}
+Chico Del Rio.\\
+Rootkits : à la pointe de la technologie,
+\\\texttt{http://tinyurl.com/zx4wk92}
+
+
+
+\end{thebibliography}
 
 \end{document}
