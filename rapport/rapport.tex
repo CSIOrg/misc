@@ -43,8 +43,8 @@
 
 %  Mise en place des pieds de page et en-tÃªtes.
 \pagestyle{fancy}
-\lhead{r007K17} % Top left header
-\chead{rkduck the LKM Rootkit} % Top center head
+\lhead{rkduck} % Top left header
+\chead{LKM rootkit pour Linux v4.x.x} % Top center head
 \rhead{Master CSI} % Top right header
 \lfoot{\lastxmark} % Bottom left footer
 \cfoot{} % Bottom center footer
@@ -139,7 +139,7 @@ Faculté de Sciences et Techniques
 % {2cm}
 \begin{abstract}
 \thispagestyle{empty}
-    Dans la continuité des travaux réalisés sur les rootkits sur les kernel 2.6.x et 3.x.x nous avons décidé de réaliser une étude des techniques d'injection de rootkits sur les kernels 4.x.x. Très peu de ressources récentes traitent du sujet et les sources des rootkits disponibles sur internet sont très souvent obsolètes suite aux modifications de certaines fonctions entre les différentes versions du noyau Linux. Vous retrouverez dans la bibliographie l'ensemble des ressources et articles qui nous ont aidés dans le développement et la conception du rootkit \texttt{rkduck}. Notre travail est disponible sur l'organisation github \href{https://github.com/QuokkaLight/}{QuokkaLight}.
+    Dans la continuité des travaux réalisés sur les rootkits pour les kernel 2.6.x et 3.x.x nous avons décidé de réaliser une étude des techniques d'injection de rootkits sur les kernels 4.x.x. Très peu de ressources récentes traitent du sujet et les sources des rootkits disponibles sur internet sont très souvent obsolètes suite aux modifications de certaines fonctions entre les différentes versions du noyau Linux. Vous retrouverez dans la bibliographie l'ensemble des ressources et articles qui nous ont aidés dans la conception et le développement du rootkit \texttt{rkduck}. Notre travail est disponible à l'adresse suivante : \href{https://github.com/QuokkaLight/rkduck/}{https://github.com/QuokkaLight/rkduck/}.
 \end{abstract}
 % \vspace{2cm}
 
@@ -174,7 +174,7 @@ Faculté de Sciences et Techniques
 
     Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Loadable Kernel Module) rootkit pour Linux v4.x.x. \\
 
-    Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappelerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Nous expliquerons ensuite les fonctionnalités mise à disposition par notre rootkit pour finir sur les méthodes de détection existantes.
+    Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappelerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Nous expliquerons ensuite les fonctionnalités mise à disposition par notre rootkit et nous terminerons sur les méthodes de détection existantes.
 
 \section{Définition et évolution des rootkits}
 
