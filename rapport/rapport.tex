@@ -26,9 +26,8 @@
 \usepackage{xcolor}
 \usepackage{cases}
 \usepackage{minted}
-
-\usemintedstyle{monokai}
-\definecolor{bg}{rgb}{0.2, 0.2, 0.2}
+\usemintedstyle{friendly}
+\definecolor{bg}{RGB}{255, 255, 255}
 
 
 % Marges
@@ -172,9 +171,9 @@ Faculté de Sciences et Techniques
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 
-    Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Linux Kernel Module) rootkit pour Linux v4.x.x. \\
+    Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Loadable Kernel Module) rootkit pour Linux v4.x.x. \\
 
-    Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappelerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Enfin, nous expliquerons les fonctionnalités mise à disposition par notre rootkit.
+    Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappelerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Nous expliquerons ensuite les fonctionnalités mise à disposition par notre rootkit pour finir sur les méthodes de détection existantes.
 
 \section{Définition et évolution des rootkits}
 
@@ -191,13 +190,13 @@ Faculté de Sciences et Techniques
 
 \section{Injection en mémoire}
 
-    Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à cette dernière.\\
+    Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem}\cite{devmem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à cette dernière.\\
 
     Afin de développer \texttt{rkduck} nous nous sommes, dans un premier temps, tournés vers l'injection basée sur \texttt{/dev/mem}. Cependant, un patch de sécurité empêche son utilisation sur les versions 4.x.x du noyau Linux, ce qui fait que nous nous sommes finalement tournés vers la construction d'un LKM rootkit.
 
     \subsection{Injection via /dev/mem}
     
-        \texttt{/dev/mem} est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principal d'un tel fichier est de pouvoir accéder directement à la mémoire sans écrire un driver kernel. Il devient alors plus aisé et rapide d'examiner la mémoire et de patcher le sytème. \texttt{/dev/mem} est un point d'entrée pour injecter du code malicieux, car, si un attaquant peut écrire dans \texttt{/dev/mem}, alors il pourra modifier des parties du kernel, notamment la table des appels systèmes ou encore les fonctions liées au \texttt{Virtual File System}, comme nous le verrons par la suite.\\
+        \texttt{/dev/mem} est un fichier qui fournit un accès à une image de la mémoire physique de la machine. L'intérêt principal d'un tel fichier est de pouvoir accéder directement à la mémoire sans écrire un driver kernel, il devient alors plus aisé et rapide d'examiner la mémoire et de patcher le sytème. \texttt{/dev/mem} est un point d'entrée pour injecter du code malicieux, car, si un attaquant peut écrire dans \texttt{/dev/mem}, alors il pourra modifier des parties du kernel, notamment la table des appels systèmes ou encore les fonctions liées au \texttt{Virtual File System}, comme nous le verrons par la suite.\\
         
         L'intérêt de cette méthode est qu'elle est plus discrète que, par exemple, une injection via un module noyau. En effet, si on suppose qu'il est possible de charger un LKM et d'écrire dans \texttt{/dev/mem}, lorsqu'on injecte un LKM il est toujours possible d'effectuer une analyse comportementale ou bien de rajouter une vérification d'authenticité par signature cryptographique, alors que dans le cas de \texttt{/dev/mem}, l'injection est directe dans la mémoire kernel et il n'y a pas d'interface qui pourrait se charger de vérifier le caractère malveillant ou non du code injecté.\\
         
@@ -216,22 +215,20 @@ Faculté de Sciences et Techniques
 
         Les \textit{Loadable Kernel Modules} sont un moyen pratique de modifier le kernel pendant qu'il s'exécute. Ils permettent ainsi de rajouter ou de supprimer des fonctionnalités (comme des drivers) au noyau sans pour autant redémarrer le système ou le recompiler. \\
         
-        Ces modules s'exécutent en espace noyau et en possède donc les droits d'exécution. Si un attaquant est capable d'injecter un tel module, alors il pourra avoir la main sur le kernel et, a fortiori, sur l'ensemble de la machine. De la même manière qu'avec l'injection via \texttt{/dev/mem} il est possible de s'attaquer aux appels systèmes et au VFS pour falsifier les informations que l'administrateur légitime de la machine tenterait d'obtenir et ainsi rendre notre rootkit invisible. \\
+        Ces modules s'exécutent en espace noyau et en possède donc les droits d'exécution. Si un attaquant est capable d'injecter un tel module, alors il pourra avoir la main sur le kernel et, a fortiori, sur l'ensemble de la machine. De la même manière qu'avec l'injection via \texttt{/dev/mem} il est possible de s'attaquer aux appels systèmes et au VFS (section ~\ref{sec:vfs}) pour falsifier les informations que l'administrateur légitime de la machine tenterait d'obtenir et ainsi rendre notre rootkit invisible. \\
         
-        Un module kernel a accès aux mêmes fonctionnalités que le kernel, ce qui fait que sa compilation requiert la source du noyau dans lequel on veut l'injecter. Cela peut devenir problématique, car les sources ne sont pas nécessairemment disponibles sur la machine cible. Il faut alors les télécharger, ce qui peut attirer l'attention de l'utilisateur légitime, ou bien compiler le LKM sur une autre machine. \\
+        Un module kernel a accès aux mêmes fonctionnalités que le kernel, ce qui fait que sa compilation requiert la source du noyau dans lequel on veut l'injecter. Cela peut devenir problématique car les sources ne sont pas nécessairement disponibles sur la machine cible, il faut alors les télécharger ce qui peut attirer l'attention de l'utilisateur légitime, ou bien compiler le LKM sur une autre machine. \\
         
         Une fois que le module a été inséré dans le système, il est, à ce stade, très facile de le détecter. En effet, il est possible de lister les LKM actuellement chargés dans le noyau à l'aide de commandes telles que \texttt{lsmod}, \texttt{modinfo} ou encore \texttt{ls /sys/module/}. Il faut prendre en compte toutes ces méthodes et faire en sorte que l'utilisateur légitime ne puisse pas  détecter notre rootkit uniquement en affichant une simple liste des modules chargés. \\
 
         % Paragraphe à vérifier et à préciser
         Nous nous sommes renseignés sur deux méthodes permettant de supprimer notre rootkit de ces listes.
 
-        La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors de retirer le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} de retirer l'entrée de notre module au niveau du \texttt{VFS} le retirant ainsi du dossier \texttt{/sys/module/}.
+        La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors de retirer le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. \textbf{YET Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} de retirer l'entrée de notre module au niveau du \texttt{VFS} le retirant ainsi du dossier \texttt{/sys/module/}.}
 
-        La seconde méthode consiste à charger le module avant de le retirer, sauf que la fonction de suppression des modules est modifiée par le rootkit. La nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
+        La seconde méthode consiste à charger le module avant de le retirer, sachant que la fonction de suppression des modules a été modifiée par le rootkit. La nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
         
-        Il existe plusieurs contre-mesures empêchant l'injection de LKM malicieux.
-
-        La solution la plus radicale consiste à compiler un noyau monolithique en y ajoutant, dès le départ, les modules voulus de manière statique tout en désactivant leur insertion dans le système par la suite.
+        Il existe plusieurs contre-mesures empêchant l'injection de LKM malicieux. La solution la plus radicale consiste à compiler un noyau monolithique en y ajoutant, dès le départ, les modules voulus de manière statique tout en désactivant leur insertion dans le système par la suite.
 
         Une séconde méthode de prévention consiste à n'autoriser le chargement qu'au démarrage de la machine, ce qui est rendu possible grâce à des solutions pourvues par \textit{grsecurity}. Dans ce cas, les modules choisis sont chargés durant la période de boot et, par la suite, un attaquant ne pourra pas insérer un module tant que le système sera en cours d'exécution.
 
@@ -252,14 +249,14 @@ Nous avons utilisé deux méthodes différentes afin de détourner le fonctionne
         La solution la plus directe et la plus simple pour détourner les appels système est de modifier la table des appels système.
 
     \subsection{Détournement du \texttt{Virtual File System}}
+    \label{sec:vfs}
     
-        Le \texttt{Virtual File System} (VFS) est une couche de communication se situant entre le kernel et le système de fichier utilisé. Cette couche est une abstraction permettant au kernel de communiquer avec n'importe quel système de fichier (ext3, ext4, etc.), c'est le VFS qui se chargera de traduire les instructions envoyées par le kernel pour qu'elle soit compréhensible par le système de fichier.
-
-        L'intérêt de s'attaquer au VFS est de pouvoir cacher des fichiers aux yeux de l'utilisateur légitime. Ainsi, on va pouvoir dissimuler des fichiers, des dossiers, mais aussi des processus grâce à des hooks sur des fonctions du VFS. \\
+        Le \texttt{Virtual File System} (VFS) est une couche de communication se situant entre le kernel et le système de fichier utilisé (ext3, ext4, etc.). C'est le VFS qui se chargera de traduire les instructions envoyées par le kernel pour qu'elle soit compréhensible par le système de fichier.
+        L'intérêt de s'attaquer au VFS est de pouvoir cacher des fichiers aux yeux de l'utilisateur légitime. Ainsi, on va pouvoir dissimuler des fichiers, des dossiers, mais aussi des processus grâce à des hooks (i.e modification des pointeurs de fonctions) sur des fonctions du VFS. \\
 
         Nous allons, dans la suite de cette partie, illustrer nos propos en construisons le système servant à dissimuler un fichier nommé \texttt{rkduck}. Le même principe pourra se généraliser à une liste de fichiers à cacher, mais aussi s'appliquer à la dissimulation de processus.
 
-        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} disponible dans la structure \texttt{file\_operations} afin de la détourner. Étant donné que nous souhaitons ici cacher des fichiers, il faudra que ce pointeur soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
+        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} \textbf{(YET pourquoi iterate, qu'est ce que c'est ?)} disponible dans la structure \texttt{file\_operations} afin de la détourner. Étant donné que nous souhaitons ici cacher des fichiers, il faudra que ce pointeur soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
 
 \begin{listing}[H]
 \begin{minted}[bgcolor=bg, linenos]{c}
@@ -303,6 +300,8 @@ void *vfs_get_iterate(const char *path) {
 \caption[dsfsdf]{vfs iterate: original to hijacked}
 \end{center}
 \end{figure}
+
+\textbf{YET écriture image illisible}
 
         A présent, la fonction qui va nous intéresser et qui est appelée par \texttt{iterate} est la fonction \texttt{filldir}. Lorsque l'on utilise l'appel système \texttt{getdents} pour lister le contenu d'un dossier, c'est la fonction \texttt{filldir} qui va se charger de remplir les structures contenant les informations sur les éléments contenus dans ce dossier. Ainsi, l'intérêt va être de remplacer cette fonction par une fonction malveillante \texttt{filldir\_hijacked} afin de contrôler quels fichiers nous souhaitons cacher.
 
@@ -348,11 +347,13 @@ vfs_hijacked_filldir(struct dir_context *ctx, const char *name,
 \label{listing:3}
 \end{listing}
 
+Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il est aussi utilisé pour cacher les processus ou les ports utilisés par le réseau comme nous le verrons section~\ref{sec:ip} pour dissimuler les backdoors.
+
 \section{Persistance du rootkit}
     
-    La persistance du rootkit correspond en quelque sorte à sa durée de vie une fois injecté dans le kernel. Elle est très importante, le but du rootkit étant de récupérer des informations sensibles etc... Sa persistance au sein du système est donc primordiale. 
+    La persistance du rootkit correspond en quelque sorte à sa durée de vie une fois injecté dans le kernel. Elle est très importante, le but du rootkit étant de récupérer des informations sensibles etc... Sa persistance au sein du système est donc primordiale. \\
     
-    Lors d'un redémarrage les modules ajoutés manuellement ne sont pas rechargés, il faut l'indiquer manuellement au système. Nous avons donc écrit un script bash qui va écrire le nom de notre module dans un fichier spécifique \texttt{/etc/modules/} (le nom et chemin du fichier n'est pas le même suivant l'OS) et placer notre rootkit compilé dans \texttt{/lib/modules/../kernel/drivers/directory/}. Pour perdre un peu plus l'utilisateur de la machine qui pourrait chercher manuellement dans la liste des dossiers drivers un nom suspect qui pourrait le mettre sur la piste d'une activité malicieuse, le script s'occupe de placer le rooktit compilé au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier légitime peut être changé par l'attaquant avant l'injection du module, il pourra pendre soin de renommer aussi le rootkit compilé en un nom qui parait légitime du style audio.ko etc.
+    Lors d'un redémarrage les modules ajoutés manuellement ne sont pas rechargés, il faut l'indiquer au système. Nous avons donc écrit un script bash qui va écrire le nom de notre module dans un fichier spécifique \texttt{/etc/modules/} (le nom et chemin du fichier n'est pas le même suivant l'OS) et placer notre rootkit compilé dans \texttt{/lib/modules/../kernel/drivers/directory/}. Pour perdre un peu plus l'utilisateur de la machine cible qui pourrait chercher manuellement dans la liste des dossiers drivers un nom suspect et le mettre sur la piste d'une activité malicieuse, le script s'occupe de placer le rooktit compilé au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier légitime peut être changé par l'attaquant avant l'injection du module, il pourra pendre soin de renommer aussi le rootkit compilé en un nom qui parait légitime de type \texttt{audio.ko, graphicards.ko} etc.
     
     Lorsque le rootkit est chargé pour la première fois le script s'exécute et à chaque démarrage de la machine notre rootkit sera maintenant chargé au sein du kernel, la persistance est donc acquise et nous pouvons maintenant présenter les différentes fonctionnalités de notre rootkit.
 
@@ -371,7 +372,7 @@ vfs_hijacked_filldir(struct dir_context *ctx, const char *name,
     
         \subsubsection{Bind shell}
             
-            Un bind-shell correspond dans notre cas à un serveur socket qui attend une connexion de la part de l'attaquant pour pouvoir exécuter des commandes shell et renvoyer le résultat. Dans cette optique nous avons mis en place un mini-serveur socket qui va simplement attendre les connexions entrantes sur un port spécifique fixé lors de l'injection du rootkit. Une fois la connexion établie, le serveur va attendre les commandes envoyées par l'attaquant, exécuter ces commandes, récupérer le résultat et renvoyer le tout au destinataire. 
+            Un bind-shell correspond dans notre cas à un serveur socket qui attend une connexion de la part de l'attaquant pour pouvoir exécuter des commandes shell et renvoyer le résultat. Dans cette optique nous avons mis en place un mini-serveur socket au sein du module kernel qui va simplement attendre les connexions entrantes sur un port spécifique fixé lors de l'injection du rootkit. Une fois la connexion établie, le serveur va attendre les commandes envoyées par l'attaquant, exécuter ces commandes, récupérer le résultat et renvoyer le tout au destinataire. 
             
 \begin{figure}[H] 
 \begin{center}
@@ -402,7 +403,7 @@ Ensuite il serait inconscient de laisser un bind-shell en écoute toute la journ
 
 Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va intercepter les paquets et regarder le type et le payload contenu, si il voit par exemple passer un paquet ICMP avec un payload spécifique et une taille de 10 alors il activera la backdoor :
 \begin{itemize}
- \item pour le reverse shell le rootkit va essayé de se connecter à l'ip de l'attaquant
+ \item pour le reverse shell le rootkit va essayer de se connecter à l'ip de l'attaquant
  \item pour le bin-shell le rootkit va commencer à écouter et attendre une connexion venant de l'attaquant
 \end{itemize}
 
@@ -419,13 +420,14 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
             
         \subsubsection{SSH backdoor}
         
-            Afin de permettre à l'attaquant d'avoir encore plus la main sur la machine corrompu et dans le cas ou le défenseur désactiverait tout les ports non conventionnels, nous avons mis en place une backdoor ssh que l'attaquant est libre d'activer ou non. Elle va tout simplement mettre sa clé publique  dans le fichier \texttt{~/.ssh/authorized\_keys} de root, il peut ainsi tout simplement se connecter en ssh avec l'utilisateur root. Évidement cela suppose que la machine cible est accessible depuis l'extérieur et que root puisse se connecter en ssh (option qui peut être désactivé dans les fichiers de configuration ssh).
+            Afin de permettre à l'attaquant d'avoir encore plus la main sur la machine corrompu et dans le cas ou le défenseur désactiverait tout les ports non conventionnels, nous avons mis en place une backdoor ssh que l'attaquant est libre d'activer ou non. Elle va tout simplement mettre sa clé publique  dans le fichier \texttt{~/.ssh/authorized\_keys} de root, il peut ainsi tout simplement se connecter en ssh avec l'utilisateur root. Évidement cela suppose que la machine cible est accessible depuis l'extérieur et que root puisse se connecter en ssh (option qui peut être désactivé dans les fichiers de configuration ssh). \\
             
-            Nous considérons cette "backdoor" comme options de secours dans le cas ou les autres ne fonctionnerais plus. Elle n'est pas très robuste car il suffit au défenseur de supprimer la clé public  dans le fichiers \texttt{authorized\_keys} mais encore faut il qu'il regarde se fichier et détermine qu'elle clé est la mauvaise. 
+            Nous considérons cette "backdoor" comme options de secours dans le cas ou les autres ne fonctionnerais plus. Elle n'est pas très robuste car il suffit au défenseur de supprimer la clé public  dans le fichiers \texttt{authorized\_keys} mais encore faut il qu'il regarde le fichier et détermine laquelle des clés est la mauvaise. 
             Si nous avons rajouté cette option ssh c'est parce qu'elle est utile si on sait que le défenseur a détecté nos traces (fermeture des ports, filtrage réseaux, commandes  suspects netstat etc), il y a peu de chance qu'il ferme aussi le port ssh. L'attaquant peux alors se connecter directement en ssh et supprimer le rootkit avant que la victime n'est le temps de le récupérer pour une analyse forensic. Ou si la discrétion n'est pas la priorité, l'attaquant peut décider changer les ports, le rootkit de place, supprimer le filtrage  etc. Le but étant comme nous l'avons évoqué plus haut de "perdre" un maximum le défenseur ou de rester le plus discret possible... 
             
             
         \subsubsection{Cacher les connexions réseaux}
+        \label{sec:ip}
             lorem
             
     \subsection{Contrôle du rootkit depuis userland}
@@ -442,14 +444,14 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
 
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
-    Lorem
+    ct cool
 
 \section*{Annexes}
 \addcontentsline{toc}{section}{Annexes}
     Lorem
 
-\section*{Bibliographie}
-\addcontentsline{toc}{section}{Bibliographie}
-    Lorem
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{plain}
+\bibliography{bibli}
 
 \end{document}
