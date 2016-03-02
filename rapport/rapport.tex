@@ -3,7 +3,7 @@
 %   PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[11pt]{article}
+\documentclass[12pt]{article}
 
 \usepackage{fancyhdr} % Required for custom headers
 \usepackage{lastpage} % Required to determine the last page for the footer
@@ -18,7 +18,6 @@
 \usepackage{float}
 \usepackage{colortbl} %Clouleur tableau protoypes de fonctions
 \usepackage{alltt}
-\usepackage{dirtytalk}
 \usepackage{fancyvrb}
 \usepackage{hyperref}
 \usepackage{amsmath}
@@ -123,7 +122,7 @@
 \date{\today}
 \location{Bordeaux}\blurb{}
 \makeatother
-\title{\textbf{\textit{rkduck} : kernel rootkit pour Linux 4.x.x}}
+\title{\textbf{\textit{rkduck} kernel rootkit Linux 4.x.x}}
 \author{Thomas Le Bourlot, Maxime Peterlin, Martial Puygrenier}
 \location{Bordeaux}
 \blurb{
@@ -380,7 +379,7 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
 
     \subsection{Backdoor}
 
-        La backdoor, littéralement \say{la porte de derrière}, est, de manière générale, le point central des rootkits. Le reste des fonctionnalités le constituant a pour objectif principal de cacher la présence d'un accès illégitime à la machine. Nous allons détailler dans les paragraphes qui suivent les différentes backdoors implémentées, ainsi que les situations auxquelles elles se rattachent.  
+        La backdoor, littéralement "la porte de derrière", est, de manière générale, le point central des rootkits. Le reste des fonctionnalités le constituant a pour objectif principal de cacher la présence d'un accès illégitime à la machine. Nous allons détailler dans les paragraphes qui suivent les différentes backdoors implémentées, ainsi que les situations auxquelles elles se rattachent.  
     
         \subsubsection{Bind shell}
             
@@ -473,7 +472,14 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
         \end{itemize}
 
     \subsection{Keylogger}
-        lorem
+        
+        Un keylogger est un programme qui va enregistrer toutes les entrées sur le clavier. L'intérêt est de garder une trace de tout ce que l'utilisateur à écrit sur sa machine. Bien qu'il puisse être utilisé légitimement dans des cas comme l'activation du contrôle parental ou afin de surveiller les employés, il peut l'être aussi à des fins totalement illégitime. L'intérêt  de cette collecte pour un attaquant est de pouvoir récupérer des informations sensibles tel que des passwords, numéros de carte bancaire etc. \\
+        
+        Le rôle de notre keylogger est donc de remplir cette tache et est rendue possible via la fonction prévue à cette effet \texttt{register\_keyboard\_notifier} qui va écouter toutes les actions clavier (touche pressé, touche relevé) au niveau kernel. Une fois une touche pressée, la fonction renvoie une valeur qui correspond au numéro de la place de la touche sur le clavier. Par exemple "ESC" est en place une, le "\&" est place deux, tandis que le "a" est en place 16.
+        
+        Nous avons donc reproduit un tableau de caractères contenant les touches claviers. Le probléme c'est que ce tableau n'est pas le même si la touche CapsLock est activé,la touche Shift ou Alt-Gr. De plus suivant la région le clavier peut être configurer en azerty, qwerty mais il y a aussi plusieurs autres configurations comme en qwerty canadien etc. Nous avons pour l'instant ajouter les claviers azerty et qwerty standard et il est tout à fait possible d'en ajouter plus suivant le besoin.L'attaquant doit définir avant l'insertion du rootkit dans quel configuration (region) il veut que les événement clavier soit enregistrer. 
+        
+        Le tout est sauvegardé à chaque retour de ligne enregistrer dans un fichier temporaire. Cette action est threader pour ne pas que l'utilisateur n'est de ralentissement sur sa machine et suspecte quelque chose. Un callback est présent pour envoyer le contenu de ce fichier toute les 6h chez l'attaquant, pour l'instant cela se fait avec un transfert scp classique. Il faut bien sur que l'attaquant précise l'ip et l'username sur laquelle il souhaite que les fichiers soit envoyé pour pouvoir les récupérer.
         
 \section{Détection du rooktit}
     
@@ -491,8 +497,6 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
 
 \addcontentsline{toc}{section}{References}
 \bibliographystyle{plain}
-\bibliography{bibli}
-
 \begin{thebibliography}{9}
 
 \bibitem{turbochaos} 
