@@ -254,9 +254,9 @@ Nous avons utilisé deux méthodes différentes afin de détourner le fonctionne
         Le \texttt{Virtual File System} (VFS) est une couche de communication se situant entre le kernel et le système de fichier utilisé (ext3, ext4, etc.). C'est le VFS qui se chargera de traduire les instructions envoyées par le kernel pour qu'elle soit compréhensible par le système de fichier.
         L'intérêt de s'attaquer au VFS est de pouvoir cacher des fichiers aux yeux de l'utilisateur légitime. Ainsi, on va pouvoir dissimuler des fichiers, des dossiers, mais aussi des processus grâce à des hooks (i.e modification des pointeurs de fonctions) sur des fonctions du VFS. \\
 
-        Nous allons, dans la suite de cette partie, illustrer nos propos en construisons le système servant à dissimuler un fichier nommé \texttt{rkduck}. Le même principe pourra se généraliser à une liste de fichiers à cacher, mais aussi s'appliquer à la dissimulation de processus.
+        Nous allons, dans la suite de cette partie, illustrer nos propos en construisons le système servant à dissimuler un fichier nommé \texttt{rkduck}. Le même principe pourra se généraliser à une liste de fichiers à cacher, mais aussi s'appliquer à la dissimulation de processus. 
 
-        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} afin de la détourner. \texttt{iterate} est une fonction qui est appelé par l'appel système \texttt{getdents} et qui va amorcer la récupération du contenu du dossier passé en argument à \texttt{getdents}. Ainsi, si l'on contrôle cette fonction, on peut décider des résultats renvoyés par celle-ci. 
+        Premièrement, nous allons récupérer un pointeur sur la fonction \texttt{iterate} afin de la détourner. \texttt{iterate} est une fonction qui est appelé par l'appel système \texttt{getdents} et qui va amorcer la récupération du contenu du dossier passé en argument à \texttt{getdents}. Ainsi, si l'on contrôle cette fonction, on peut décider des résultats renvoyés par celle-ci. L'ensemble des fonctions présentées ici sont disponibles dans le fichier \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/vfs.c}{vfs.c}.
 
         Étant donné que nous souhaitons ici cacher des fichiers, il faudra que le pointeur vers \texttt{iterate} soit relatif à la racine \texttt{/}, pour les processus on pourra se cantoner à \texttt{/proc}. \\
 
@@ -302,8 +302,6 @@ void *vfs_get_iterate(const char *path) {
 \caption[dsfsdf]{vfs iterate: original to hijacked}
 \end{center}
 \end{figure}
-
-% \textbf{YET écriture image illisible}
 
         A présent, la fonction qui va nous intéresser et qui est appelée par \texttt{iterate} est la fonction \texttt{filldir}. Lorsque l'on utilise l'appel système \texttt{getdents} pour lister le contenu d'un dossier, c'est la fonction \texttt{filldir} qui va se charger de remplir les structures contenant les informations sur les éléments contenus dans ce dossier. Ainsi, l'intérêt va être de remplacer cette fonction par une fonction malveillante \texttt{filldir\_hijacked} afin de contrôler quels fichiers nous souhaitons cacher.
 
@@ -357,11 +355,10 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
 
     Lors d'un redémarrage, les modules ajoutés manuellement ne sont pas rechargés. Il existe un fichier de configuration, propre à chaque distribution, permettant de notifier au système les modules à charger au démarrage. Sur Debian, par exemple, ce fichier est \texttt{/etc/modules}. \\
 
-    La persistance de notre rootkit repose sur un script bash qui va se charger de placer notre rootkit compilé dans \texttt{/lib/modules/../kernel/drivers/directory/}. Afin que les fichiers soient un minimum camouflés, au cas où l'utilisateur légitime chercherait manuellement dans le dossier des drivers un nom suspect, le script s'occupe de placer le rooktit compilé au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier abritant le rootkit peut être changé par l'attaquant avant l'injection du module, il pourra également pendre soin de renommer le rootkit compilé en un nom paraissant légitime comme, par exemple, \texttt{audio.ko}, \texttt{graphicards.ko}, etc.\\
-    
-    Lors du premier chargement du rootkit, le script est exécuté. Maintenant, à chaque démarrage de la machine, \texttt{rkduck} sera chargé au sein du kernel. 
+    La persistance de notre rootkit repose sur un script \href{https://github.com/QuokkaLight/rkduck/blob/master/forever.sh}{bash} exécuté par le rootkit lors de son insertion et qui va se charger de déplacer le rootkit compilé avec les autres modules kernel \texttt{/lib/modules/../kernel/drivers/directory/}. Afin que les fichiers soient un minimum camouflés, au cas où l'utilisateur légitime chercherait manuellement dans le dossier des drivers un nom suspect, le script s'occupe de placer le rooktit au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier abritant le rootkit peut être changé par l'attaquant avant l'injection du module, il pourra également pendre soin de renommer le rootkit compilé en un nom paraissant légitime comme, par exemple, \texttt{audio.ko}, \texttt{graphicards.ko}, \texttt{calendar.ko} etc. \\
 
     % YET ajouter les contre-mesures
+    C'est ici que ce situe le talon d'Achille de notre rootkit, il suffit en effet à l'utilisateur de supprimer notre module du fichier \texttt{/etc/modules} et de redémarrer la machine. La persistance n'étant plus assuré, le rootkit aura disparu au redémarrage.
 
 \section{Fonctionnalités du rootkit}
     
@@ -379,7 +376,7 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
 
     \subsection{Backdoor}
 
-        La backdoor, littéralement "la porte de derrière", est, de manière générale, le point central des rootkits. Le reste des fonctionnalités le constituant a pour objectif principal de cacher la présence d'un accès illégitime à la machine. Nous allons détailler dans les paragraphes qui suivent les différentes backdoors implémentées, ainsi que les situations auxquelles elles se rattachent.  
+        La backdoor, littéralement "la porte de derrière", est, de manière générale, le point central des rootkits. Le reste des fonctionnalités le constituant a pour objectif principal de cacher la présence d'un accès illégitime à la machine. Nous allons détailler dans les paragraphes qui suivent les différentes backdoors implémentées, ainsi que les situations auxquelles elles se rattachent. Les sources sont disponibles dans le fichier \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/backdoor.c}{backdoor.c}.
     
         \subsubsection{Bind shell}
             
@@ -393,7 +390,7 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
 \end{center}
 \end{figure}
             
-            L'exécution des commandes se fait via l'API\texttt{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, nous avons donc redirigé la sortie standard vers un fichier temporaire \texttt{/tmp/.cmd}, le résultat est lu puis renvoyé. Lorsque la connexion est interrompue avec l'attaquant le fichier qui contient le résultat de la dernière commande est supprimé.
+            L'exécution des commandes se fait via un appel ) la fonction \texttt{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, nous avons donc redirigé la sortie standard vers un fichier temporaire \texttt{/tmp/.cmd}, le résultat est lu puis renvoyé. Lorsque la connexion est interrompue avec l'attaquant le fichier qui contient le résultat de la dernière commande est supprimé.
             
         \subsubsection{Reverse shell}
             
@@ -415,7 +412,7 @@ Ensuite il serait inconscient de laisser un bind-shell en écoute toute la journ
 Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va intercepter les paquets et regarder le type et le payload contenu, si il voit par exemple passer un paquet ICMP avec un payload spécifique et une taille de 10 alors il activera la backdoor :
 \begin{itemize}
  \item pour le reverse shell le rootkit va essayer de se connecter à l'ip de l'attaquant
- \item pour le bin-shell le rootkit va commencer à écouter et attendre une connexion venant de l'attaquant
+ \item pour le bind-shell le rootkit va commencer à écouter et attendre une connexion venant de l'attaquant
 \end{itemize}
 
     Enfin il est possible que les paquets soient filtrés par un firewall externe, par exemple les paquets ICMP comportant un payload pourraient êtres rejetés et l'attaquant n'aurait aucun moyen d'accéder aux backdoors. Nous avons donc mis en place un timer qui va appeler activer la backdoor toutes les 12h. Le temps est bien sur configurable par l'utilisateur à l'injection du rootkit.
@@ -475,25 +472,39 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
         
         Un keylogger est un programme qui va enregistrer toutes les entrées sur le clavier. L'intérêt est de garder une trace de tout ce que l'utilisateur à écrit sur sa machine. Bien qu'il puisse être utilisé légitimement dans des cas comme l'activation du contrôle parental ou afin de surveiller les employés, il peut l'être aussi à des fins totalement illégitime. L'intérêt  de cette collecte pour un attaquant est de pouvoir récupérer des informations sensibles tel que des passwords, numéros de carte bancaire etc. \\
         
-        Le rôle de notre keylogger est donc de remplir cette tache et est rendue possible via la fonction prévue à cette effet \texttt{register\_keyboard\_notifier} qui va écouter toutes les actions clavier (touche pressé, touche relevé) au niveau kernel. Une fois une touche pressée, la fonction renvoie une valeur qui correspond au numéro de la place de la touche sur le clavier. Par exemple "ESC" est en place une, le "\&" est place deux, tandis que le "a" est en place 16.
+        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/keylogger.c}{keylogger} est donc de remplir cette tache et est rendue possible via la fonction prévue à cette effet \texttt{register\_keyboard\_notifier} qui va écouter toutes les actions clavier (touche pressé, touche relevé) au niveau kernel. Une fois une touche pressée, la fonction renvoie une valeur qui correspond au numéro de la place de la touche sur le clavier. Par exemple "ESC" est en place une, le "\&" est place deux, tandis que le "a" est en place 16.
         
-        Nous avons donc reproduit un tableau de caractères contenant les touches claviers. Le probléme c'est que ce tableau n'est pas le même si la touche CapsLock est activé,la touche Shift ou Alt-Gr. De plus suivant la région le clavier peut être configurer en azerty, qwerty mais il y a aussi plusieurs autres configurations comme en qwerty canadien etc. Nous avons pour l'instant ajouter les claviers azerty et qwerty standard et il est tout à fait possible d'en ajouter plus suivant le besoin.L'attaquant doit définir avant l'insertion du rootkit dans quel configuration (region) il veut que les événement clavier soit enregistrer. 
+        Nous avons donc reproduit un tableau de caractères contenant les touches claviers. Il faut aussi prendre en compte que ce tableau n'est pas le même si la touche CapsLock est activé,la touche Shift ou Alt-Gr. De plus suivant la région le clavier peut être configurer en azerty, qwerty mais il y a aussi plusieurs autres configurations comme en qwerty canadien etc. Nous avons pour l'instant ajouter les claviers azerty et qwerty standard et il est tout à fait possible d'en ajouter plus suivant le besoin.L'attaquant doit définir avant l'insertion du rootkit dans quel configuration (region) il veut que les événement clavier soit enregistrer. 
         
-        Le tout est sauvegardé à chaque retour de ligne enregistrer dans un fichier temporaire. Cette action est threader pour ne pas que l'utilisateur n'est de ralentissement sur sa machine et suspecte quelque chose. Un callback est présent pour envoyer le contenu de ce fichier toute les 6h chez l'attaquant, pour l'instant cela se fait avec un transfert scp classique. Il faut bien sur que l'attaquant précise l'ip et l'username sur laquelle il souhaite que les fichiers soit envoyé pour pouvoir les récupérer.
+        Le tout est sauvegardé à chaque retour de ligne dans un fichier temporaire. Cette action se fait avec des thread pour ne pas que l'utilisateur ne subisse de ralentissement sur sa machine et suspecte quelque chose. Enfin, un callback est présent pour envoyer le contenu de ce fichier toute les 6h chez l'attaquant, pour l'instant cela se fait avec un transfert scp classique. Il faut bien sur que l'attaquant précise l'ip et l'username sur laquelle il souhaite que les fichiers soit envoyé pour pouvoir les récupérer.
         
 \section{Détection du rooktit}
     
-    -> honeypot page 12
+    La détection consiste à regrouper des informations pour mettre en évidence la présence d'un rootkit. Elle consiste essentiellement en deux étapes\cite{detection}:
+    \begin{itemize}
+    	\item recherche d'anomalies comme une activité inhabituelle de la charge CPU alors qu'aucun programme n'est lancé, une activé réseau importante à des heures censé être calme. La vérification des répertoires comme \texttt{/dev} pour vérifier les périphériques, la détection de permissions anormal sur des dossier ou fichiers, de dossier/fichiers cachés, processus cachés etc
+    	\item comparer les hashs des modules kernel avec des hashs connus de rootkits. Cette méthode utilise une base de donnée contenant des signatures de rootkit mais cela ne permet pas de pouvoir détecter les nouvelles menaces jusqu'à une mise à jour du logiciel et l'ajout du hash à la base de donnée. 
+    \end{itemize}
     
-            
+    Il existe plusieurs logiciels de détections de rootkit sous Linux dont notamment:
+    \begin{itemize}
+    	\item RkHunter
+    	\item Chkrootkit
+    	\item OSSEC + RootCheck
+    	\item Lynis
+    	\item Tiger
+    \end{itemize}
+    
+    Une bonne utilisation de ces logiciels serait le lancement quotidien via un cron par exemple pour vérifier la présence d'un rootkit. Un attaquant pourra prendre soit de bloquer les connections lorsque le logiciel souhaite se mettre à jour ou renvoyer une liste obsolète. Il s'agit du jeu du chat et la souris et parfois leurs utilisation est moins profitable que de placer un MITM et de regarder le trafic réseaux. C'est le cas des IDS (Intrusion detection system) qui vont chercher via les logs une activité suspecte\cite{honeypot}. Malheureusement les IDS si ils sont utilisés en temps réel ont un coup sur les performance du système et vont souvent être lancé après coup, pendant la nuit par exemple. \\
+    
+    Pour finir avant même que l'attaquant essaye d'injecter son rootkit, la défense commence parfois à utiliser un honey pot\cite{honeypot}, cela permet de récupérer des informations essentiels sur l'attaquant et la provenance du rootkit. Ainsi une fois en possession du rootkit, le défenseur pour le reverse pour pouvoir étudier ces fonctionnalités et trouver une faille pour l'éradiquer. \\
+    
+   
+    Les outils présentés plus haut ne garantissent pas une détection à 100\% et même si le rootkit est découvert il faut pouvoir le supprimer. Le meilleur moyen consiste à réinstaller le système entier, le rootkit étant injecté dans le kernel il est pratiquement impossible de corriger correctement tous les effets néfaste qu'il aurait déjà mis en place (permission sur les dossiers etc). 
 
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
     ct cool
-
-\section*{Annexes}
-\addcontentsline{toc}{section}{Annexes}
-    Lorem
 
 \addcontentsline{toc}{section}{References}
 \bibliographystyle{plain}
@@ -522,6 +533,17 @@ Indetectable Linux Kernel Modules,
 Chico Del Rio.\\
 Rootkits : à la pointe de la technologie,
 \\\texttt{http://tinyurl.com/zx4wk92}
+
+\bibitem{honeypot}
+Raynal Frédéricn Yan Berthier, Philippe Biondi, Danielle Kaminisky.\\
+Honeypot Forensices Part I: Analyzing the Network,
+\\\texttt{http://folk.uio.no/ingardm/sysarp/honeypot\_forensics\_1.pdf}
+
+\bibitem{detection}
+Ashwni Ramaswamy.\\
+Detecting kernel Rootkits,
+\\\texttt{http://www.ists.dartmouth.edu/library/409.pdf}
+
 
 
 
