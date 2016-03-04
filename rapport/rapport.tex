@@ -244,9 +244,51 @@ Nous avons utilisé deux méthodes différentes afin de détourner le fonctionne
 
     \subsection{Détournement des appels systèmes}
     
-        Les appels systèmes sont une interface entre le monde utilisateur et le noyau. De nombreux programmes sont dépendants de ces derniers pour mener leurs tâches à bien. Par exemple, si l'on souhaite cacher un dossier \texttt{rkduck}, il est possible de modifier l'appel système \texttt{getdents}. Ainsi, tous les programmes utilisant \texttt{getdents}, tels que \texttt{find} ou \texttt{ls}, ne seront pas en mesure d'afficher le dossier \texttt{rkduck}.
+        Les appels systèmes sont une interface entre le monde utilisateur et le noyau. De nombreux programmes sont dépendants de ces derniers pour mener leurs tâches à bien. Par exemple, si l'on souhaite cacher un dossier \texttt{rkduck}, il est possible de modifier l'appel système \texttt{getdents}. Ainsi, tous les programmes utilisant \texttt{getdents}, tels que \texttt{find} ou \texttt{ls}, ne seront pas en mesure d'afficher le dossier \texttt{rkduck}.\\
 
-        La solution la plus directe et la plus simple pour détourner les appels système est de modifier la table des appels système\cite{turbochaos}.
+        Il est important de noter que \texttt{rkduck} ne repose pas sur la modification des appels système pour fonctionner, mais sur le détournement du \texttt{Virtual File System}, technique qui sera détaillée par la suite. Le code dans notre rootkit gérant cet aspect n'est qu'une preuve de concept qui est, pour le moment, inutile au niveau du fonctionnement global et qui sera certainement supprimé ultérieurement. \\
+
+        La solution la plus directe et la plus simple pour détourner les appels système est de modifier la table des appels système\cite{turbochaos}. Pour se faire, il faut tout d'abord localiser son emplacement en mémoire. Il existe, dans une structure appelée \texttt{sys_call_table}, un pointeur la référençant utilisé par tous les appels système. Pour le localiser, nous allons simplement bruteforcer une série d'adresses du kernel. Pour chaque adresse, nous ajoutons un offset à la valeur pointée, puis on la compare avec l'adresse connue d'un appel système. Si les deux valeurs correspondent, l'itération est arrêtée et l'adresse utilisée durant ce tour de boucle est celle de la table des appels système.
+
+\begin{listing}[H]
+\begin{minted}[bgcolor=bg, linenos]{c}
+#if defined(__i386__) /* x86 */
+    #define SCT_START_CHECK 0xc0000000
+    #define SCT_END_CHECK   0xd0000000
+    typedef unsigned int ptr_t;
+#else /* x86_64 */
+    #define SCT_START_CHECK 0xffffffff81000000
+    #define SCT_END_CHECK   0xffffffffa2000000
+    typedef unsigned long ptr_t;
+#endif /* arch */
+
+ptr_t find_syscall_table(void) {
+    ptr_t** sc_table;
+    ptr_t addr = SCT_START_CHECK;
+    
+    while (addr < SCT_END_CHECK) {
+        sc_table = (ptr_t**) addr;
+        if (sc_table[__NR_close] == (ptr_t*) sys_close) {
+            return (ptr_t) &sc_table[0];
+        }
+
+        addr += sizeof(void *);
+    }
+    return NULL;
+}
+\end{minted}
+\caption{Code permettant de trouver l'adresse de la table des appels système\cite{turbochaos}}
+\label{listing:3}
+\end{listing}
+
+        Une fois l'adresse de la table des appels système connue, il ne reste plus qu'à
+
+        Nous avons décrit ici une méthode simple et peu furtive permettant de se hooker à la table des appels système et de détourner n'importe lequel de ses élements. Il existe cependant des techniques plus avancées remontant la séquence d'exécution d'un appel système.
+
+        Par exemple, il est possible de détecter la méthode détaillée ci-dessus en vérifiant les adresses contenues dans la table des appels système. Pour contourner la détection, nous pouvons nous attaquer au gestionnaire des appels système en remplaçant dans ce dernier l'adresse de la table utilisée. Ainsi, il suffit de copier la table des appels système et de changer le pointeur utilisé dans le gestionnaire pour que ce dernier utilise notre table détounée au lieu de l'originale. Ainsi, lorsque l'administrateur tentera de détecter notre hook en regardant la table originale, il échouera, car cette dernière n'a pas été modifiée.
+
+        De la même manière, que précédemment, si l'utilisateur légitime vérifie le pointeur utilisé par le gestionnaire des appels système, il se rendra compte que la table utilisée diffère de l'originale. 
+
 
     \subsection{Détournement du \texttt{Virtual File System}}
     \label{sec:vfs}
