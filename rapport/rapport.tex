@@ -281,11 +281,45 @@ ptr_t find_syscall_table(void) {
 \label{listing:3}
 \end{listing}
 
-        Une fois l'adresse de la table des appels système connue, il ne reste plus qu'à
+        Une fois l'adresse de la table des appels système connue, il ne reste plus qu'à modifier l'adresse de l'appel système que l'on souhaite détourner par une fonction que l'on contrôle. Si l'on tente de le faire directement, le module plantera, ce qui est dû au fait que la page contenant la table des appels système est en lecture seule. Il faut alors changer les droits d'accès à cette dernière, ce qui est rendu possible dans \texttt{rkduck} avec la fonction suivante.
+        
+\begin{listing}[H]
+\begin{minted}[bgcolor=bg, linenos]{c}
+#if defined(__i386__) /* x86 */
+    #define SCT_START_CHECK 0xc0000000
+    #define SCT_END_CHECK   0xd0000000
+    typedef unsigned int ptr_t;
+#else /* x86_64 */
+    #define SCT_START_CHECK 0xffffffff81000000
+    #define SCT_END_CHECK   0xffffffffa2000000
+    typedef unsigned long ptr_t;
+#endif /* arch */
 
-        Nous avons décrit ici une méthode simple et peu furtive permettant de se hooker à la table des appels système et de détourner n'importe lequel de ses élements. Il existe cependant des techniques plus avancées remontant la séquence d'exécution d'un appel système.
+ptr_t find_syscall_table(void) {
+    ptr_t** sc_table;
+    ptr_t addr = SCT_START_CHECK;
+    
+    while (addr < SCT_END_CHECK) {
+        sc_table = (ptr_t**) addr;
+        if (sc_table[__NR_close] == (ptr_t*) sys_close) {
+            return (ptr_t) &sc_table[0];
+        }
 
-        Par exemple, il est possible de détecter la méthode détaillée ci-dessus en vérifiant les adresses contenues dans la table des appels système. Pour contourner la détection, nous pouvons nous attaquer au gestionnaire des appels système en remplaçant dans ce dernier l'adresse de la table utilisée. Ainsi, il suffit de copier la table des appels système et de changer le pointeur utilisé dans le gestionnaire pour que ce dernier utilise notre table détounée au lieu de l'originale. Ainsi, lorsque l'administrateur tentera de détecter notre hook en regardant la table originale, il échouera, car cette dernière n'a pas été modifiée.
+        addr += sizeof(void *);
+    }
+    return NULL;
+}
+\end{minted}
+\caption{Code permettant de trouver l'adresse de la table des appels système\cite{turbochaos}}
+\label{listing:3}
+\end{listing}
+        
+        
+        Comme la mémoire kernel est partagée entre tous les éléments opérant au niveau du noyau, il est possible de remplacer les pointeurs vers les appels système par des fonctions définies dans notre rootkit. 
+
+        Nous avons décrit ici une méthode simple et peu furtive permettant de se hooker à la table des appels système et de détourner n'importe lequel de ses éléments. Il existe cependant des techniques plus avancées remontant la séquence d'exécution d'un appel système.
+
+        Par exemple, il est possible de détecter la méthode détaillée ci-dessus en vérifiant les adresses contenues dans la table des appels système. Pour contourner la détection, nous pouvons nous attaquer au gestionnaire des appels système en remplaçant dans ce dernier l'adresse de la table utilisée. Ainsi, il suffit de copier la table des appels système et de changer le pointeur utilisé dans le gestionnaire pour que ce dernier utilise notre table détournée au lieu de l'originale. Ainsi, lorsque l'administrateur tentera de détecter notre hook en regardant la table originale, il échouera, car cette dernière n'a pas été modifiée.
 
         De la même manière, que précédemment, si l'utilisateur légitime vérifie le pointeur utilisé par le gestionnaire des appels système, il se rendra compte que la table utilisée diffère de l'originale. 
 
