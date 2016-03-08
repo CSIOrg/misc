@@ -122,7 +122,7 @@
 \date{\today}
 \location{Bordeaux}\blurb{}
 \makeatother
-\title{\textbf{\textit{rkduck} kernel rootkit Linux 4.x.x}}
+\title{\textbf{\textit{rkduck} : LKM rootkit Linux 4.x.x}}
 \author{Thomas Le Bourlot, Maxime Peterlin, Martial Puygrenier}
 \location{Bordeaux}
 \blurb{
@@ -173,16 +173,16 @@ Faculté de Sciences et Techniques
 
     Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Loadable Kernel Module) rootkit pour Linux v4.x.x. \\
 
-    Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappelerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Nous expliquerons ensuite les fonctionnalités mise à disposition par notre rootkit et nous terminerons sur les méthodes de détection existantes.
+    Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappellerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Nous expliquerons ensuite les fonctionnalités mise à disposition par notre rootkit et nous terminerons sur les méthodes de détection existantes.
 
 \section{Définition et évolution des rootkits}
 
-    Afin de compromettre une machine, un attaquant passe généralement par la même série d'étapes. Une fois que des vulnérabilités dans le système ont été identifiées, l'attaquant les exploite afin de prendre la main sur le système jusqu'à compromettre entièrement ce dernier afin d'avoir les droits de super-utilisateur.
+    Afin de compromettre une machine, un attaquant passe généralement par la même série d'étapes. Une fois que des vulnérabilités dans le système ont été identifiées, l'attaquant les exploite pour prendre la main sur le système jusqu'à compromettre entièrement ce dernier afin d'avoir les droits de super-utilisateur.
     Cependant, l'exploitation de failles dans un système ne peut être considéré comme un moyen sûr pour accéder à une machine, car le simple fait de corriger les vulnérabilités empêcherait d'y accéder à nouveau. C'est pourquoi il est nécessaire de faire persister l'accès après la compromission, ce qui est rendu possible par l'utilisation de rootkits.\\
     
-    Les premiers types de rootkits utilisés étaient des ensembles de programmes qui permettaient de substituer les outils d'administration standard tels que ls, ps, etc. Ainsi, l'intrus avait le contrôle sur les sorties de se programme et pouvait cacher l'activité malicieuse qui se passait sur la machine. Cependant, il devenait fastidieux de cacher la compromission de la machine à l'administrateur légitime. Ce dernier pouvait utiliser plusieurs programmes effectuant la même action pour recouper les informations et ainsi découvrir des différences entre les résultats retournés révélant ainsi la présence d'un rootkit.\\
+    Les premiers types de rootkits utilisés étaient des ensembles de programmes qui permettaient de substituer les outils d'administration standard tels que \texttt{ls}, \texttt{ps}, etc. Ainsi, l'intrus avait le contrôle sur les sorties de ce programme et pouvait cacher l'activité malicieuse qui se passait sur la machine. Cependant, il devenait fastidieux de cacher la compromission de la machine à l'administrateur légitime. Ce dernier pouvait utiliser plusieurs programmes effectuant la même action pour recouper les informations et ainsi découvrir des différences entre les résultats retournés révélant ainsi la présence d'un rootkit.\\
     
-    Les attaquants se sont alors rendus compte qu'il était inutile de réécrire toute une suite de programmes, ce qui peut devenir très conséquent en terme de taille et en temps de développement. Il suffit de remonter aux fonctions utilisées par tous ces programmes d'administration : les appels systèmes. En supposant que l'intrus ait accès au kernel, il est possible d'intercepter les appels systèmes pour les rediriger vers des fonctions malveillantes afin de cacher la compromission de la machine. A partir du moment où l'attaquant a le contrôle sur le noyau du système, il devient difficile de détecter de manière fiable un rootkit, car les systèmes de sécurité opèrent au même niveau que ce dernier et des fonctions que l'on peut penser digne de confiance peuvent retourner des résultats falsifiés. \\
+    Les attaquants se sont alors rendus compte qu'il était inutile de réécrire toute une suite de programmes, ce qui peut devenir très conséquent en terme de taille et en temps de développement. Il suffit de remonter aux fonctions utilisées par tous ces programmes d'administration : les appels systèmes. En supposant que l'intrus ait accès au kernel, il est possible d'intercepter les appels systèmes pour les rediriger vers des fonctions malveillantes afin de cacher la compromission de la machine. A partir du moment où l'attaquant a le contrôle sur le noyau du système, il devient difficile de détecter de manière fiable un rootkit, car les systèmes de sécurité opèrent, au mieux, au niveau du kernel et des fonctions que l'on peut penser digne de confiance peuvent retourner des résultats falsifiés. \\
     C'est ce type de rootkit que nous allons étudier par la suite, notamment les rootkits s'injectant dans le système sous forme de modules kernel\cite{suterusu}.
 
     % Petite partie sur les bootkits
@@ -190,7 +190,7 @@ Faculté de Sciences et Techniques
 
 \section{Injection en mémoire}
 
-    Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem}\cite{devmem} et des modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, ce qui nécessite cependant un accès physique à cette dernière.\\
+    Il existe plusieurs méthodes d'injection de code dans un noyau. Nous étudierons dans cette partie les deux méthodes les plus répandues à savoir l'utilisation du périphérique \texttt{/dev/mem}\cite{devmem} et les modules noyau. A titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire} qui permet d'avoir un accès direct à toute la mémoire de la machine, cette méthode nécessite cependant un accès physique à celle-ci.\\
 
     Afin de développer \texttt{rkduck} nous nous sommes, dans un premier temps, tournés vers l'injection basée sur \texttt{/dev/mem}. Cependant, un patch de sécurité empêche son utilisation sur les versions 4.x.x du noyau Linux, ce qui fait que nous nous sommes finalement tournés vers la construction d'un LKM rootkit.
 
@@ -314,14 +314,71 @@ ptr_t find_syscall_table(void) {
 \label{listing:3}
 \end{listing}
         
+        Comme la mémoire kernel est partagée entre tous les éléments opérant au niveau du noyau, il est possible de remplacer les pointeurs vers les appels système par des fonctions définies dans notre rootkit. Le problème étant que la page  mémoire contenant la table des appels système est en lecture seule. Il faut donc au préalable modifier les droits sur cette dernière grâce à la structure \texttt{pte\_t} (Page Table Entry) qui contient les attributs d'une page donnée. Ce qui est rendu possible par la fonction suivante.
         
-        Comme la mémoire kernel est partagée entre tous les éléments opérant au niveau du noyau, il est possible de remplacer les pointeurs vers les appels système par des fonctions définies dans notre rootkit. 
+\begin{listing}[H]
+\begin{minted}[bgcolor=bg, linenos]{c}
+int set_page_rw(ptr_t address) {
+    unsigned int level;
+    pte_t *pte = lookup_address(address, &level);
+
+    if (pte->pte &~ _PAGE_RW) {
+        pte->pte |= _PAGE_RW;
+    }
+
+    return 0;
+}
+\end{minted}
+\caption{Code permettant de trouver l'adresse de la table des appels système\cite{turbochaos}}
+\label{listing:3}
+\end{listing}
+
+		Il ne reste plus qu'à remplacer l'appel système. Dans l'exemple qui suit, l'appel système détourné est \texttt{write}. La nouvelle fonction \texttt{write} va regarder si le buffer à afficher contient la chaîne de caractères ".rkduck". Si c'est le cas, la fonction ne renvoie rien, sinon, on fait appel à l'originale en lui passant les mêmes arguments qu'à notre fonction détournée.
+		
+\begin{listing}[H]
+\begin{minted}[bgcolor=bg, linenos]{c}
+asmlinkage ssize_t duck_write(int fd, const char __user *buff, ssize_t count) {
+	int r = 0;
+	char *proc_protect = ".rkduck";
+	char *kbuff = (char *) kmalloc(256, GFP_KERNEL);
+	
+	if (!copy_from_user(kbuff, buff, 255)) {
+		if (strstr(kbuff, proc_protect)) {
+			kfree(kbuff);
+			return EEXIST;
+		}
+
+		r = (*original_write)(fd, buff, count);
+		kfree(kbuff);
+	}
+		
+	return r;
+}
+\end{minted}
+\caption{Appel système \texttt{write} modifié}
+\label{listing:3}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}[bgcolor=bg, linenos]{c}
+int duck_init(void) {
+    /* [...] */    
+    set_page_rw((ptr_t) sys_call_table);
+    original_write = xchg(&sys_call_table[__NR_write], duck_write);
+    set_page_ro((ptr_t) sys_call_table);
+	/* [...] */
+    return 0;
+}
+\end{minted}
+\caption{Détournement de l'appel système \texttt{write}}
+\label{listing:3}
+\end{listing}
 
         Nous avons décrit ici une méthode simple et peu furtive permettant de se hooker à la table des appels système et de détourner n'importe lequel de ses éléments. Il existe cependant des techniques plus avancées remontant la séquence d'exécution d'un appel système.
 
-        Par exemple, il est possible de détecter la méthode détaillée ci-dessus en vérifiant les adresses contenues dans la table des appels système. Pour contourner la détection, nous pouvons nous attaquer au gestionnaire des appels système en remplaçant dans ce dernier l'adresse de la table utilisée. Ainsi, il suffit de copier la table des appels système et de changer le pointeur utilisé dans le gestionnaire pour que ce dernier utilise notre table détournée au lieu de l'originale. Ainsi, lorsque l'administrateur tentera de détecter notre hook en regardant la table originale, il échouera, car cette dernière n'a pas été modifiée.
-
-        De la même manière, que précédemment, si l'utilisateur légitime vérifie le pointeur utilisé par le gestionnaire des appels système, il se rendra compte que la table utilisée diffère de l'originale. 
+        Par exemple, il est possible de détecter la méthode détaillée ci-dessus en vérifiant les adresses contenues dans la table des appels système. Pour contourner la détection, nous pouvons nous attaquer au gestionnaire des appels système en remplaçant dans ce dernier l'adresse de la table utilisée. Ainsi, il suffit de copier la table des appels système et de changer le pointeur utilisé dans le gestionnaire pour que ce dernier utilise notre table détournée au lieu de l'originale. Ainsi, lorsque l'administrateur tentera de détecter notre hook en regardant la table originale, il échouera, car cette dernière n'a pas été modifiée. De la même manière que précédemment, si l'utilisateur légitime vérifie le pointeur utilisé par le gestionnaire des appels système, il se rendra compte que la table utilisée diffère de l'originale. 
+        
+        Il est possible de remonter la chaîne d'exécution des appels système en détournant à chaque niveau les mécanismes utilisés. Les contre-mesures sont toujours aussi  "simples". Il est compliqué de cacher le détournement effectué par un rootkit si ce n'est en falsifiant les résultats retournés au niveau utilisateur ou en bloquant l'accès au kernel à d'autres modules pouvant servir à détecter le rootkit.
 
 
     \subsection{Détournement du \texttt{Virtual File System}}
@@ -433,22 +490,32 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
 
     La persistance de notre rootkit repose sur un script \href{https://github.com/QuokkaLight/rkduck/blob/master/forever.sh}{bash} exécuté par le rootkit lors de son insertion et qui va se charger de déplacer le rootkit compilé avec les autres modules kernel \texttt{/lib/modules/../kernel/drivers/directory/}. Afin que les fichiers soient un minimum camouflés, au cas où l'utilisateur légitime chercherait manuellement dans le dossier des drivers un nom suspect, le script s'occupe de placer le rooktit au sein d'un dossier légitime exemple : \texttt{/kernel/drivers/tty/rkduck.ko}. Le nom du dossier abritant le rootkit peut être changé par l'attaquant avant l'injection du module, il pourra également pendre soin de renommer le rootkit compilé en un nom paraissant légitime comme, par exemple, \texttt{audio.ko}, \texttt{graphicards.ko}, \texttt{calendar.ko} etc. \\
 
-    % YET ajouter les contre-mesures
-    C'est ici que ce situe le talon d'Achille de notre rootkit, il suffit en effet à l'utilisateur de supprimer notre module du fichier \texttt{/etc/modules} et de redémarrer la machine. La persistance n'étant plus assuré, le rootkit aura disparu au redémarrage.
+    Pour empêcher la persistance de notre rootkit, le simple fait de le supprimer de la liste des modules contenus dans \texttt{/etc/modules} et de redémarrer la machine. Le rootkit ne sera alors plus chargé et les fichiers malveillants seront visibles sur la machine. Il pourrait être intéressant, dans une version future de \texttt{rkduck} de détourner les modifications effectuées par l'utilisateur sur ce fichier. Ainsi, lorsqu'il voudra le modifier, \texttt{rkduck}, sera présent dans la liste des modules à charger, mais non visible. Toutes les modifications faites par l'utilisateur pourront également être prises en compte afin qu'il ne suspecte pas d'activités malveillantes sur sa machine. De ce fait, il pourra ajouter ou retirer des modules du fichier, mais \texttt{rkduck} restera invisible et persistant.
 
 \section{Fonctionnalités du rootkit}
     
     L'intérêt principal d'un rootkit est de garder un accès à la machine compromise tout en effaçant et en dissimulant toutes traces d'intrusion. Dans cette partie nous expliquerons comment \texttt{rkduck} cache les fichiers, les processus et les connexions réseaux. Nous détaillerons également comment l'attaquant peut, par la suite, accéder à la machine compromise grâce à différents types de backdoors, lui permettant ainsi de s'adapter à diverses situations.
 
     \subsection{Furtivité}
-    
-        \subsubsection{Dissimulation de fichiers}
-            lorem
-        \subsubsection{Dissimuation de processus}
-            lorem
-        \subsubsection{Dissimulation des connexions réseaux}
-        \label{sec:ip}
-            lorem
+        
+        	La dissimulation des éléments malveillants de notre rootkit repose essentiellement sur le détournement des fonctions du VFS. Comme nous l'avons vu précédemment, la fonction \texttt{filldir} est remplacée afin d'avoir le contrôle sur les éléments d'un dossier. 
+
+			La dissimulation est basée sur trois listes chaînées pour les fichiers, les processus et les connexions réseaux. Ces listes possède le format suivant.
+
+\begin{listing}[H]
+\begin{minted}[bgcolor=bg, linenos]{c}
+struct hidden_file {
+    char *path;
+    struct list_head list;
+};
+\end{minted}
+\caption{Version simplifiée de vfs\_hijacked\_filldir dans rkduck}
+\label{listing:3}
+\end{listing}
+
+			Ainsi, si l'on souhaite dissimuler un élément du système, il faut ajouter une entrée dans la liste correspondante en indiquant le chemin absolu vers la ressource à cacher. C'est au moment de l'appel à la fonction \texttt{filldir} que la vérification est faite. Si la ressource est publique, alors on fait appel à la fonction \texttt{filldir} originale. Autrement, la valeur 0 est renvoyée, ce qui permet de cacher la ressource voulue.
+
+			Il est évident que cette méthode de dissimulation n'est efficace que si le système de fichier est monté par le kernel infecté. Si le disque contenant le rootkit est monté sur une machine saine, cela aura pour effet de révéler les binaires qui pourront alors être analysés.
 
     \subsection{Backdoor}
 
@@ -456,7 +523,7 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
     
         \subsubsection{Bind shell}
             
-            Un bind-shell correspond dans notre cas à un serveur socket qui attend une connexion de la part de l'attaquant pour pouvoir exécuter des commandes shell et renvoyer le résultat. Dans cette optique nous avons mis en place un mini-serveur socket au sein du module kernel qui va simplement attendre les connexions entrantes sur un port spécifique fixé lors de l'injection du rootkit. Une fois la connexion établie, le serveur va attendre les commandes envoyées par l'attaquant, exécuter ces commandes, récupérer le résultat et renvoyer le tout au destinataire. 
+            Un bind-shell correspond, dans notre cas, à un serveur socket attendant une connexion de la part de l'attaquant afin d'exécuter des commandes shell sur la machine cible. Dans cette optique, un serveur socket basique a été mis en place au sein du rootkit. Ce serveur attend les connexions entrantes sur un port spécifique fixé lors de l'injection du rootkit. Une fois la connexion établie le serveur va attendre les commandes envoyées par l'attaquant, les exécuter et récupérer le résultat avant de le renvoyer au destinataire.
             
 \begin{figure}[H] 
 \begin{center}
@@ -466,11 +533,11 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
 \end{center}
 \end{figure}
             
-            L'exécution des commandes se fait via un appel ) la fonction \texttt{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, nous avons donc redirigé la sortie standard vers un fichier temporaire \texttt{/tmp/.cmd}, le résultat est lu puis renvoyé. Lorsque la connexion est interrompue avec l'attaquant le fichier qui contient le résultat de la dernière commande est supprimé.
+            L'exécution des commandes se fait via un appel à la fonction \texttt{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, la sortie standard a été redirigée vers un fichier temporaire \texttt{/tmp/.cmd} caché par \texttt{rkduck}. Le résultat est lu puis renvoyé à l'attaquant. Lorsque la connexion est interrompue, le fichier contenant le résultat de la dernière commande est supprimé.
             
         \subsubsection{Reverse shell}
             
-            Le reverse shell consiste à l'opération inverse du bind-shell, ce n'est pas le rootkit qui va attendre une connexion mais l'attaquant qui va se mettre en mode "écoute". Le rootkit quand à lui va initier la connexion vers l'attaquant. (L'adresse ip doit donc être indiquer avant que le rootkit soit injecté). Lorsqu'il reçoit les commandes shell envoyées par l'attaquant le rootkit va se comporter exactement comme le bind shell, c'est à dire copier le résultat dans un fichier temporaire, lire le fichier et renvoyer le résultat.
+            Le reverse shell est l'inverse du bind-shell dans le sens où ce n'est pas le rootkit qui va se positionner comme serveur, mais l'attaquant. Le rootkit, qui sera client, va initier la connexion. Cela nécessite que l'adresse IP soit renseignée avant que le rootkit ne soit injecté. Lorsqu'il reçoit les commandes shell envoyées par l'attaquant le rootkit va se comporter exactement comme le bind shell. Il va copier le résultat dans un fichier temporaire, lire le fichier et renvoyer son contenu.
             
 \begin{figure}[H] 
 \begin{center}
@@ -482,16 +549,19 @@ Nous avons vu comment utiliser le VFS pour cacher des fichiers, dossiers mais il
             
         \subsubsection{Activation des backdoors}
             
-Tout d'abord, l'attaquant choisit d'activer l'une des deux backdoor suivant la situation. Il peut activer et désactiver les backdoors via \textbf{crumb} comme nous l'expliquerons dans la partie (voir section~\ref{sec:crumb}). 
-Ensuite il serait inconscient de laisser un bind-shell en écoute toute la journée si on veut rester le plus discret possible. Pour le reverse-shell il faut aussi lui donner un signal pour qu'il puisse se connecter à l'attaquant, nous avons pour cela décidé que la backdoor pourrait s'activer en envoyant un paquet ICMP avec un payload spécifique. Ce payload serait seulement connu de l'attaquant et seul lui peut donc se connecter à sa backdoor.
+            L'attaquant peut choisir le mode de fonctionnement de la backdoor (bind shell, reverse shell) suivant la situation. Cela est rendu possible grâce au programme de contrôle \texttt{Crumbs} dont le fonctionnement est détaillé dans la section ~\ref{sec:crumb}. 
+			Afin d'assurer le caractère furtif de notre rootkit, la backdoor ne peut être active constamment. C'est pourquoi , indépendamment du mode de fonctionnement, il est possible d'activer la backdoor à l'aide de paquets ICMP contenant un payload spécifique connu uniquement de l'attaquant.             
+            
+%Tout d'abord, l'attaquant choisit d'activer l'une des deux backdoor suivant la situation. Il peut activer et désactiver les backdoors via \textbf{Crumbs} comme nous l'expliquerons dans la partie (voir section~\ref{sec:crumb}). 
+%Ensuite il serait inconscient de laisser un bind-shell en écoute toute la journée si on veut rester le plus discret possible. Pour le reverse-shell il faut aussi lui donner un signal pour qu'il puisse se connecter à l'attaquant, nous avons pour cela décidé que la backdoor pourrait s'activer en envoyant un paquet ICMP avec un payload spécifique. Ce payload serait seulement connu de l'attaquant et seul lui peut donc se connecter à sa backdoor.
 
-Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va intercepter les paquets et regarder le type et le payload contenu, si il voit par exemple passer un paquet ICMP avec un payload spécifique et une taille de 10 alors il activera la backdoor :
+C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du rootkit rootktit. Il va intercepter les paquets et  vérifier leur type ainsi que leur contenu. S'il reçoit un paquet ICMP contenant le bon payload et ayant une taille de 10 octets, alors la backdoor sera activée :
 \begin{itemize}
- \item pour le reverse shell le rootkit va essayer de se connecter à l'ip de l'attaquant
- \item pour le bind-shell le rootkit va commencer à écouter et attendre une connexion venant de l'attaquant
+ \item \textbf{reverse shell} : le rootkit va tenter de se connecter à l'adresse IP de l'attaquant.
+ \item \textbf{bind shell} : le rootkit va se mettre en écoute et attendre une connexion venant de l'attaquant.
 \end{itemize}
 
-    Enfin il est possible que les paquets soient filtrés par un firewall externe, par exemple les paquets ICMP comportant un payload pourraient êtres rejetés et l'attaquant n'aurait aucun moyen d'accéder aux backdoors. Nous avons donc mis en place un timer qui va appeler activer la backdoor toutes les 12h. Le temps est bien sur configurable par l'utilisateur à l'injection du rootkit.
+    Il est également possible que les paquets soient filtrés par un firewall externe et que, par exemple, les paquets ICMP comportant un payload soient rejetés. L'attaquant n'aurait alors aucun moyen d'accéder à la machine compromise. C'est pourquoi un timer a été mis en place. Son rôle sera d'activer la backdoor toutes les 12h. Le temps est configurable par l'utilisateur à l'injection du rootkit.
         
 \begin{figure}[H] 
 \begin{center}
@@ -504,11 +574,9 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
             
         \subsubsection{SSH backdoor}
         
-            Afin de permettre à l'attaquant d'avoir encore plus la main sur la machine corrompu et dans le cas ou le défenseur désactiverait tout les ports non conventionnels, nous avons mis en place une backdoor ssh que l'attaquant est libre d'activer ou non. Elle va tout simplement mettre sa clé publique  dans le fichier \texttt{~/.ssh/authorized\_keys} de root, il peut ainsi tout simplement se connecter en ssh avec l'utilisateur root. Évidement cela suppose que la machine cible est accessible depuis l'extérieur et que root puisse se connecter en ssh (option qui peut être désactivé dans les fichiers de configuration ssh). \\
+        	Dans le cas où le défenseur déactiverait ou contrôlerait tous les ports non conventionnels, une backdoor SSH a été mise en place. De manière générale, il est rare que le port SSH soit désactivé. C'est d'autant plus le cas sur des machines faisant office de serveurs. L'attaquant est libre de l'activer ou non, directement à l'insertion du rootkit ou par la suite à l'aide de \texttt{Crumbs}. \texttt{rkdcuk} va placer la clé publique de l'attaquant dans le fichier \texttt{~/.ssh/authorized\_keys} de l'utilisateur \texttt{root}. Cela présuppose que la machine cible est accessible depuis l'extérieure du réseau où elle se trouve et que l'utilisateur \texttt{root} puisse se connecter en SSH. \\
             
-            Nous considérons cette "backdoor" comme options de secours dans le cas ou les autres ne fonctionnerais plus. Elle n'est pas très robuste car il suffit au défenseur de supprimer la clé public  dans le fichiers \texttt{authorized\_keys} mais encore faut il qu'il regarde le fichier et détermine laquelle des clés est la mauvaise. 
-            Si nous avons rajouté cette option ssh c'est parce qu'elle est utile si on sait que le défenseur a détecté nos traces (fermeture des ports, filtrage réseaux, commandes  suspects netstat etc), il y a peu de chance qu'il ferme aussi le port ssh. L'attaquant peux alors se connecter directement en ssh et supprimer le rootkit avant que la victime n'est le temps de le récupérer pour une analyse forensic. Ou si la discrétion n'est pas la priorité, l'attaquant peut décider changer les ports, le rootkit de place, supprimer le filtrage  etc. Le but étant comme nous l'avons évoqué plus haut de "perdre" un maximum le défenseur ou de rester le plus discret possible... 
-            
+            Cette backdoor, dont l'utilisation n'est pas recommandée, est considérée comme une option de secours dans le cas où les autres ne fonctionneraient plus. Non seulement elle n'est pas robuste, car il suffit au défenseur de supprimer la clé publique dans le fichier \texttt{authorized\_keys}, mais elle crée également des logs parasitent, notamment lors de la connexion, pouvant éveiller les soupçons. Toutefois, elle peut éventuellement permettre de faire des modifications sur le rootkit, les ports utilisés, etc. Toutefois, il vaut mieux utiliser le rootkit via les backdoors décrites précédemment.
             
     \subsection{Application de contrôle du rootkit}
     \label{sec:crumb}
@@ -533,7 +601,7 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
 
         \texttt{Crumbs} possède actuellement 9 commandes permettant de contrôler \texttt{rkduck}.
         \begin{itemize}
-            \item \textbf{authenticate} Avant de pouvoir utilsier \texttt{rkduck} il faut que l'utilisateur utilisant \texttt{Crumbs} puisse s'authentifier en lui donnant un mot de passe qui sera validé ou non par \texttt{rkduck}. Le mot de passe est hardcoded dans le rootkit.
+            \item \textbf{authenticate} Avant de pouvoir utiliser \texttt{rkduck} il faut que l'utilisateur utilisant \texttt{Crumbs} puisse s'authentifier en lui donnant un mot de passe qui sera validé ou non par \texttt{rkduck}. Le mot de passe est hardcoded dans le rootkit.
             \item \textbf{activate-ssh} Activation de la backdoor SSH. 
             \item \textbf{deactivate-ssh} Désactivation de la backdoor SSH.
             \item \textbf{hide-file} Dissimulation du fichier passé en argument.
@@ -543,44 +611,54 @@ Nous avons donc implémenté un mini firewall à l'intérieur du rootktit qui va
             \item \textbf{remote-ip} Modification de l'adresse IP distante de l'attaquante utilisée par le reverse shell.
             \item \textbf{mode} Modification du mode de fonctionnement de la backdoor (bind shell ou reverse shell).
         \end{itemize}
+        
+        Il reste encore de nombreuses commandes à ajouter à cet outil de contrôle, mais le principe général étant en place, il est facile de le personnaliser pour l'adapter aux besoins de l'attaquant.
 
     \subsection{Keylogger}
         
-        Un keylogger est un programme qui va enregistrer toutes les entrées sur le clavier. L'intérêt est de garder une trace de tout ce que l'utilisateur à écrit sur sa machine. Bien qu'il puisse être utilisé légitimement dans des cas comme l'activation du contrôle parental ou afin de surveiller les employés, il peut l'être aussi à des fins totalement illégitime. L'intérêt  de cette collecte pour un attaquant est de pouvoir récupérer des informations sensibles tel que des passwords, numéros de carte bancaire etc. \\
+        Un keylogger est un programme enregistrant toutes les entrées sur le clavier. Cela permet de garder une trace des informations sensibles de l'utilisateur telles que ces mots de passe, son numéro de carte bancaire, etc. \\ 
         
-        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/keylogger.c}{keylogger} est donc de remplir cette tache et est rendue possible via la fonction prévue à cette effet \texttt{register\_keyboard\_notifier} qui va écouter toutes les actions clavier (touche pressé, touche relevé) au niveau kernel. Une fois une touche pressée, la fonction renvoie une valeur qui correspond au numéro de la place de la touche sur le clavier. Par exemple "ESC" est en place une, le "\&" est place deux, tandis que le "a" est en place 16.
+        % Bien qu'il puisse être utilisé légitimement dans des cas comme l'activation du contrôle parental ou afin de surveiller les employés, il peut l'être aussi à des fins totalement illégitime. L'intérêt  de cette collecte pour un attaquant est de pouvoir récupérer des informations sensibles tel que des passwords, numéros de carte bancaire etc. \\
         
-        Nous avons donc reproduit un tableau de caractères contenant les touches claviers. Il faut aussi prendre en compte que ce tableau n'est pas le même si la touche CapsLock est activé,la touche Shift ou Alt-Gr. De plus suivant la région le clavier peut être configurer en azerty, qwerty mais il y a aussi plusieurs autres configurations comme en qwerty canadien etc. Nous avons pour l'instant ajouter les claviers azerty et qwerty standard et il est tout à fait possible d'en ajouter plus suivant le besoin.L'attaquant doit définir avant l'insertion du rootkit dans quel configuration (region) il veut que les événement clavier soit enregistrer. 
+        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/keylogger.c}{keylogger} rempli via la fonction \texttt{register\_keyboard\_notifier} qui va surveiller toutes les interactions avec le clavier (touche pressé, touche relevé) au niveau kernel. Lorsqu'une touche est pressée la fonction renvoie une valeur qui correspond au numéro de sa position sur le clavier. Par exemple "ESC" est en première position, "\&" en deuxième, tandis que "a" est à la 16\textsuperscript{ème} position.
         
-        Le tout est sauvegardé à chaque retour de ligne dans un fichier temporaire. Cette action se fait avec des thread pour ne pas que l'utilisateur ne subisse de ralentissement sur sa machine et suspecte quelque chose. Enfin, un callback est présent pour envoyer le contenu de ce fichier toute les 6h chez l'attaquant, pour l'instant cela se fait avec un transfert scp classique. Il faut bien sur que l'attaquant précise l'ip et l'username sur laquelle il souhaite que les fichiers soit envoyé pour pouvoir les récupérer.
+        Nous avons reproduit un tableau de caractères contenant les touches du clavier. Ce tableau est différent si les touches Caps Lock, Shift ou Alt sont activées. De plus, suivant la région, le clavier peut posséder différentes configurations (azerty, qwerty, qwertz, etc.). Les claviers supportés pour l'instant sont les configurations azerty et qwerty standard. Il est possible d'en ajouter de nouvelles suivant le besoin. L'attaquant doit définir avant l'insertion du rootkit dans quelle configuration il veut que les événement clavier soient enregistrés. 
         
+        Le tout est sauvegardé à chaque retour de ligne dans un fichier temporaire.         
+        %Cette action se fait avec des thread pour ne pas que l'utilisateur ne subisse de ralentissement sur sa machine et suspecte quelque chose.
+        Enfin, un callback est présent pour envoyer le contenu de ce fichier toutes les 6 heures chez l'attaquant. Cela est effectué, pour l'instant, via la commande \texttt{scp}. L'attaquant doit évidemment préciser l'adresse IP de la machine et le nom d'utilisateur associé afin que les fichiers soient envoyés.
+                
 \section{Détection du rooktit}
     
-    La détection consiste à regrouper des informations pour mettre en évidence la présence d'un rootkit. Elle consiste essentiellement en deux étapes\cite{detection}:
+    La détection consiste à regrouper des informations mettant en évidence la présence d'un rootkit. Elle consiste essentiellement en deux étapes\cite{detection}:
     \begin{itemize}
-    	\item recherche d'anomalies comme une activité inhabituelle de la charge CPU alors qu'aucun programme n'est lancé, une activé réseau importante à des heures censé être calme. La vérification des répertoires comme \texttt{/dev} pour vérifier les périphériques, la détection de permissions anormal sur des dossier ou fichiers, de dossier/fichiers cachés, processus cachés etc
-    	\item comparer les hashs des modules kernel avec des hashs connus de rootkits. Cette méthode utilise une base de donnée contenant des signatures de rootkit mais cela ne permet pas de pouvoir détecter les nouvelles menaces jusqu'à une mise à jour du logiciel et l'ajout du hash à la base de donnée. 
+    	\item La recherche d'anomalies telle qu'une activité inhabituelle de la charge CPU alors qu'aucun programme n'est lancé, une activé réseau importante à des heures inhabituelles. La vérification des répertoires comme \texttt{/dev} pour surveiller les périphériques, de permissions anormales sur des fichiers, des processus, etc.
+    	\item La comparaison des signatures des modules kernel avec les signatures connues de rootkits. Cependant cette méthode ne permet pas de détecter les nouvelles menaces avant une mise à jour du logiciel ajoutant les signatures des nouveaux rootkits.
     \end{itemize}
     
-    Il existe plusieurs logiciels de détections de rootkit sous Linux dont notamment:
+    Il existe plusieurs logiciels de détection de rootkit sous Linux. Nous citerons notamment:
     \begin{itemize}
-    	\item RkHunter
-    	\item Chkrootkit
-    	\item OSSEC + RootCheck
-    	\item Lynis
-    	\item Tiger
+    	\item RkHunter ;
+    	\item Chkrootkit ;
+    	\item OSSEC avec RootCheck ;
+    	\item Lynis ;
+    	\item Tiger.
     \end{itemize}
     
-    Une bonne utilisation de ces logiciels serait le lancement quotidien via un cron par exemple pour vérifier la présence d'un rootkit. Un attaquant pourra prendre soit de bloquer les connections lorsque le logiciel souhaite se mettre à jour ou renvoyer une liste obsolète. Il s'agit du jeu du chat et la souris et parfois leurs utilisation est moins profitable que de placer un MITM et de regarder le trafic réseaux. C'est le cas des IDS (Intrusion detection system) qui vont chercher via les logs une activité suspecte\cite{honeypot}. Malheureusement les IDS si ils sont utilisés en temps réel ont un coup sur les performance du système et vont souvent être lancé après coup, pendant la nuit par exemple. \\
+    Un lancement quotidien de ces logiciels via un cron job permettrait de vérifier la présence d'éléments malveillants dans le noyau. Cependant, il est possible pour un attaquant de prendre soit de bloquer les connexions lorsque le logiciel se met à jour ou falsifier l'analyse de ces outils. 
     
-    Pour finir avant même que l'attaquant essaye d'injecter son rootkit, la défense commence parfois à utiliser un honey pot\cite{honeypot}, cela permet de récupérer des informations essentiels sur l'attaquant et la provenance du rootkit. Ainsi une fois en possession du rootkit, le défenseur pour le reverse pour pouvoir étudier ces fonctionnalités et trouver une faille pour l'éradiquer. \\
+    Il s'agit du jeu du chat et la souris et parfois leurs utilisation est moins profitable que de placer un MITM et de regarder le trafic réseaux. C'est le cas des IDS (Intrusion detection system) qui vont chercher via les logs une activité suspecte\cite{honeypot}. Malheureusement les IDS si ils sont utilisés en temps réel ont un coup sur les performance du système et vont souvent être lancé après coup, pendant la nuit par exemple. \\
     
+    L'utilisation de honeypots sur un réseau, en supposant que ce dernier soit suffisamment isolé des environnements réels, est un moyen potentiel permettant de récupérer les nouveaux rootkits. Cela permettrait de le désassembler et d'étudier son fonctionnement afin d'établir de nouvelles règles pour les IDS ou ajouter des signatures aux programmes de détection listés ci-dessus.
    
-    Les outils présentés plus haut ne garantissent pas une détection à 100\% et même si le rootkit est découvert il faut pouvoir le supprimer. Le meilleur moyen consiste à réinstaller le système entier, le rootkit étant injecté dans le kernel il est pratiquement impossible de corriger correctement tous les effets néfaste qu'il aurait déjà mis en place (permission sur les dossiers etc). 
+    Les outils présentés dans cette partie ne garantissent pas une détection à 100\% et, même si le rootkit est découvert, il faut encore pouvoir le supprimer. Certains rootkits sont pensés pour être robustes et s'injectent si profondément dans la machine, qu'il est impossible de s'en défaire à moins de réinstaller le système entier.
 
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
-    ct cool
+    
+	Au travers de cet article, nous avons pu étudier et détailler différentes techniques et fonctionnalités utilisées par les rootkits. Nous avons également adapté ces dernières aux kernel Linux 4.x.x. \texttt{rkduck}, le LKM rootkit que nous avons développé et illustrant nos recherches, possède aujourd'hui une première version fonctionnelle, mais basique. Il reste encore certaines choses à améliorer.
+	Notre rootkit n'utilise aucune technique d'obfuscation et le simple fait de désassembler le code donne toutes les informations dont un administrateur a besoin pour s'en défaire. Un autre point important est l'absence de moyens de communications chiffrées mis à part \texttt{SSH}. Il pourrait être intéressant d'inclure cette fonctionnalités afin qu'une entité extérieure (administrateur, NIDS, etc.) ne puisse lire le contenu des paquets assurant la communication vers le serveur de l'attaquant. Cependant, cela nécessiterait une application cliente côté attaquant comprennant le protocole de communication et implémentant la méthode de chiffrement utilisée. Une dernière idée d'amélioration pourrait être de trouver une méthode d'injection plus fiable qu'espérer que les modules noyaux soient activés. Cela nécessiterait l'utilisation d'exploit kernel, mais rendrait l'injection plus sûre.
+
 
 \addcontentsline{toc}{section}{References}
 \bibliographystyle{plain}
