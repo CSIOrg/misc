@@ -647,11 +647,11 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
     
     Un lancement quotidien de ces logiciels via un cron job permettrait de vérifier la présence d'éléments malveillants dans le noyau. Cependant, il est possible pour un attaquant de prendre soit de bloquer les connexions lorsque le logiciel se met à jour ou falsifier l'analyse de ces outils. 
     
-    Il s'agit du jeu du chat et la souris et parfois leurs utilisation est moins profitable que de placer un MITM et de regarder le trafic réseaux. C'est le cas des IDS (Intrusion detection system) qui vont chercher via les logs une activité suspecte\cite{honeypot}. Malheureusement les IDS si ils sont utilisés en temps réel ont un coup sur les performance du système et vont souvent être lancé après coup, pendant la nuit par exemple. \\
+    %Il s'agit du jeu du chat et la souris et parfois leurs utilisation est moins profitable que de placer un MITM et de regarder le trafic réseaux. C'est le cas des IDS (Intrusion detection system) qui vont chercher via les logs une activité suspecte\cite{honeypot}. Malheureusement les IDS si ils sont utilisés en temps réel ont un coup sur les performance du système et vont souvent être lancé après coup, pendant la nuit par exemple. \\
     
     L'utilisation de honeypots sur un réseau, en supposant que ce dernier soit suffisamment isolé des environnements réels, est un moyen potentiel permettant de récupérer les nouveaux rootkits. Cela permettrait de le désassembler et d'étudier son fonctionnement afin d'établir de nouvelles règles pour les IDS ou ajouter des signatures aux programmes de détection listés ci-dessus.
    
-    Les outils présentés dans cette partie ne garantissent pas une détection à 100\% et, même si le rootkit est découvert, il faut encore pouvoir le supprimer. Certains rootkits sont pensés pour être robustes et s'injectent si profondément dans la machine, qu'il est impossible de s'en défaire à moins de réinstaller le système entier.
+    Les outils présentés dans cette partie ne garantissent pas une détection à 100\% et, même si le rootkit est découvert, il faut encore pouvoir le supprimer. Certains rootkits sont pensés pour être robustes et s'injectent si profondément dans la machine, qu'il est impossible de s'en défaire à moins de réinstaller le système entièrement.
 
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
