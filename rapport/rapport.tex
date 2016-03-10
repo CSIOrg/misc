@@ -123,7 +123,7 @@
 \location{Bordeaux}\blurb{}
 \makeatother
 \title{\textbf{\textit{rkduck} : LKM rootkit Linux 4.x.x}}
-\author{Thomas Le Bourlot, Maxime Peterlin, Martial Puygrenier}
+\author{Maxime Peterlin, Martial Puygrenier}
 \location{Bordeaux}
 \blurb{
 Université de Bordeaux\\
@@ -138,7 +138,7 @@ Faculté de Sciences et Techniques
 % {2cm}
 \begin{abstract}
 \thispagestyle{empty}
-    Dans la continuité des travaux réalisés sur les rootkits pour les kernel 2.6.x et 3.x.x nous avons décidé de réaliser une étude des techniques d'injection de rootkits sur les kernels 4.x.x. Très peu de ressources récentes traitent du sujet et les sources des rootkits disponibles sur internet sont très souvent obsolètes suite aux modifications de certaines fonctions entre les différentes versions du noyau Linux. Vous retrouverez dans la bibliographie l'ensemble des ressources et articles qui nous ont aidés dans la conception et le développement du rootkit \texttt{rkduck}. Notre travail est disponible à l'adresse suivante : \href{https://github.com/QuokkaLight/rkduck/}{https://github.com/QuokkaLight/rkduck/}.
+    Dans la continuité des travaux réalisés\cite{turbochaos} \cite{zenk} sur les rootkits pour les kernel 2.6.x et 3.x.x nous avons décidé de réaliser une étude des techniques d'injection de rootkits sur les kernels 4.x.x. Très peu de ressources récentes traitent du sujet et les sources des rootkits disponibles sur internet sont très souvent obsolètes suite aux modifications de certaines fonctions entre les différentes versions du noyau Linux. Vous retrouverez dans la bibliographie l'ensemble des ressources et articles qui nous ont aidés dans la conception et le développement du rootkit \texttt{rkduck}. Notre travail est disponible à l'adresse suivante : \href{https://github.com/QuokkaLight/rkduck/}{https://github.com/QuokkaLight/rkduck/}.
 \end{abstract}
 % \vspace{2cm}
 
@@ -171,7 +171,7 @@ Faculté de Sciences et Techniques
 \section*{Introduction}
 \addcontentsline{toc}{section}{Introduction}
 
-    Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre rootkit nommé \texttt{rkduck}, un LKM (Loadable Kernel Module) rootkit pour Linux v4.x.x. \\
+    Cet article traite des rootkits. Ce sont des programmes permettant de cacher la compromission d'une machine à ses utilisateurs légitimes. Plus précisément, nous expliquerons le développement de notre LKM (Loadable Kernel Module) rootkit pour Linux v4.x.x nommé \texttt{rkduck}. \\
 
     Nos propos seront développés de la manière suivante. Dans un premier temps, nous rappellerons en quoi consiste un rootkit et comment ils ont évolué au fil du temps. Une partie sera consacrée aux différentes méthodes d'injection de code dans le noyau Linux. Suite à cela, nous expliquerons comment notre rootkit détourne le fonctionnement du système pour cacher une activité malveillante et de quelle manière il reste persistant sur la machine. Nous expliquerons ensuite les fonctionnalités mises à disposition par notre rootkit et nous terminerons sur les méthodes de détection existantes.
 
@@ -199,7 +199,7 @@ Faculté de Sciences et Techniques
     
         \texttt{/dev/mem} est un fichier fournissant un accès à une image de la mémoire physique de la machine. L'intérêt principal d'un tel fichier est de pouvoir accéder directement à la mémoire sans écrire un driver kernel. Il devient alors plus aisé et rapide d'examiner la mémoire et de patcher le sytème. \texttt{/dev/mem} est un point d'entrée pour injecter du code malicieux\cite{hackin9}\cite{sstic} car, si un attaquant peut écrire dans \texttt{/dev/mem}, alors il pourra modifier des parties du kernel, notamment la table des appels systèmes ou encore les fonctions liées au \texttt{Virtual File System}, comme nous le verrons par la suite.\\
         
-        L'intérêt de cette méthode est qu'elle est plus discrète que, par exemple, une injection via un module noyau. En effet, si on suppose qu'il est possible de charger un LKM et d'écrire dans \texttt{/dev/mem}, lorsqu'on injecte un LKM il est toujours possible d'effectuer une analyse comportementale ou bien de rajouter une vérification d'authenticité par signature cryptographique, alors que dans le cas de \texttt{/dev/mem}, l'injection est directe dans la mémoire kernel et il n'y a pas d'interface qui pourrait se charger de vérifier le caractère malveillant ou non du code injecté.\\
+        L'intérêt de cette méthode est qu'elle est plus discrète que, par exemple, une injection via un module noyau. En effet, lorsqu'on injecte un LKM il est toujours possible d'effectuer une analyse comportementale ou bien de rajouter une vérification d'authenticité par signature cryptographique, alors que dans le cas de \texttt{/dev/mem}, l'injection est directe dans la mémoire kernel et il n'y a pas d'interface qui pourrait se charger de vérifier le caractère malveillant ou non du code injecté.\\
         
         Il existe également un fichier nommé \texttt{/dev/kmem}. C'est essentiellement le même fichier que \texttt{/dev/mem} sauf que dans le cas de \texttt{/dev/kmem} on accède à la mémoire virtuelle du kernel et non à la mémoire physique. La mémoire kernel possède peut fonctionner suivant deux modes. Le premier est un décalage par rapport à la mémoire physique, par exemple sur \texttt{x86} l'adresse physique \texttt{0x00000001} est mappée sur l'adresse virtuelle kernel \text{0xc0000001}. Le second mode repose sur la routine \texttt{vmalloc} qui est l'un des principaux mécanismes d'allocation de mémoire dynamique. Dans ce cas, le kernel ne sera pas contigüe en mémoire physique, même ce dernier verra les adresses virtuelles comme contigües.\\
         
@@ -227,7 +227,7 @@ Faculté de Sciences et Techniques
 
         La seconde méthode consiste à charger le module, modifier la fonction de suppression des modules, puis le retirer\cite{spacelkm}. La nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
         
-        Il existe plusieurs contre-mesures empêchant l'injection de LKM malicieux. La solution la plus radicale consiste à compiler un noyau monolithique en y ajoutant, dès le départ, les modules voulus de manière statique tout en désactivant leur insertion dans le système par la suite.
+        Au niveau des contre-mesures, il existe plusieurs méthodes empêchant l'injection de LKM malicieux. La solution la plus radicale consiste à compiler un noyau monolithique en y ajoutant, dès le départ, les modules voulus de manière statique tout en désactivant leur insertion dans le système par la suite.
 
         Une seconde méthode de prévention consiste à n'autoriser le chargement qu'au démarrage de la machine, ce qui est rendu possible grâce à des solutions pourvues par \textit{grsecurity}. Dans ce cas, les modules choisis sont chargés durant la période de boot et, par la suite, un attaquant ne pourra pas insérer un module tant que le système sera en cours d'exécution.
 
@@ -542,7 +542,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
         
         	Dans le cas où le défenseur déactiverait ou contrôlerait tous les ports non conventionnels, une backdoor SSH a été mise en place. De manière générale, il est rare que le port SSH soit désactivé. C'est d'autant plus le cas sur des machines faisant office de serveurs. L'attaquant est libre de l'activer ou non, directement à l'insertion du rootkit ou par la suite à l'aide de \texttt{Crumbs}. \texttt{rkdcuk} va placer la clé publique de l'attaquant dans le fichier \texttt{~/.ssh/authorized\_keys} de l'utilisateur \texttt{root}. Cela présuppose que la machine cible est accessible depuis l'extérieure du réseau où elle se trouve et que l'utilisateur \texttt{root} puisse se connecter en SSH. \\
             
-            Cette backdoor, dont l'utilisation n'est pas recommandée, est considérée comme une option de secours dans le cas où les autres ne fonctionneraient plus. Non seulement elle n'est pas robuste, car il suffit au défenseur de supprimer la clé publique dans le fichier \texttt{authorized\_keys}, mais elle crée également des logs parasitent, notamment lors de la connexion, pouvant éveiller les soupçons. Toutefois, elle peut éventuellement permettre de faire des modifications sur le rootkit, les ports utilisés, etc. Toutefois, il vaut mieux utiliser le rootkit via les backdoors décrites précédemment.
+            Cette backdoor, dont l'utilisation n'est pas recommandée, est considérée comme une option de secours dans le cas où les autres ne fonctionneraient plus. Non seulement elle n'est pas robuste, car il suffit au défenseur de supprimer la clé publique dans le fichier \texttt{authorized\_keys}, mais elle crée également des logs parasites, notamment lors de la connexion, pouvant éveiller les soupçons. Toutefois, elle peut éventuellement permettre de faire des modifications sur le rootkit, les ports utilisés, etc. Toutefois, il vaut mieux utiliser le rootkit via les backdoors décrites précédemment.
             
     \subsection{Application de contrôle du rootkit}
     \label{sec:crumb}
@@ -609,7 +609,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
     	\item Tiger.
     \end{itemize}
     
-    Un lancement quotidien de ces logiciels via un cron job permettrait de vérifier la présence d'éléments malveillants dans le noyau. Cependant, il est possible pour un attaquant de bloquer les connexions lorsque le logiciel se met à jour ou falsifier l'analyse de ces outils. 
+    Un lancement quotidien de ces logiciels via un cron job permettrait de vérifier la présence d'éléments malveillants dans le noyau. Cependant, il est possible pour un attaquant de bloquer les connexions lorsque le logiciel se met à jour ou falsifier l'analyse de ces outils.
     
     %Il s'agit du jeu du chat et la souris et parfois leurs utilisation est moins profitable que de placer un MITM et de regarder le trafic réseaux. C'est le cas des IDS (Intrusion detection system) qui vont chercher via les logs une activité suspecte\cite{honeypot}. Malheureusement les IDS si ils sont utilisés en temps réel ont un coup sur les performance du système et vont souvent être lancé après coup, pendant la nuit par exemple. \\
     
@@ -620,7 +620,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
     
-	Au travers de cet article, nous avons pu étudier et détailler différentes techniques et fonctionnalités utilisées par les rootkits. Nous avons également adapté ces dernières aux kernel Linux 4.x.x. \texttt{rkduck}, le LKM rootkit que nous avons développé et illustrant nos recherches, possède aujourd'hui une première version fonctionnelle, mais basique. Il reste encore certaines choses à améliorer.
+	Au travers de cet article, nous avons pu étudier et détailler différentes techniques et fonctionnalités utilisées par les rootkits. Nous avons également adapté ces dernières aux kernel Linux 4.x.x. \texttt{rkduck}, le LKM rootkit que nous avons développé et illustrant nos recherches, possède aujourd'hui une première version fonctionnelle, mais basique. Il reste encore beaucoup améliorations possibles.
 	Notre rootkit n'utilise aucune technique d'obfuscation et le simple fait de désassembler le code donne toutes les informations dont un administrateur a besoin pour s'en défaire. Un autre point important est l'absence de moyens de communications chiffrées mis à part \texttt{SSH}. Il pourrait être intéressant d'inclure cette fonctionnalité afin qu'une entité extérieure (administrateur, NIDS, etc.) ne puisse lire le contenu des paquets assurant la communication vers le serveur de l'attaquant. Cependant, cela nécessiterait une application cliente côté attaquant comprenant le protocole de communication et implémentant la méthode de chiffrement utilisée. Une dernière idée d'amélioration pourrait être de trouver une méthode d'injection plus fiable qu'espérer que les modules noyaux soient activés. Cela nécessiterait l'utilisation d'exploits kernel, mais rendrait l'injection plus sûre.
 
 \newpage
@@ -633,6 +633,16 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
 Tyler Borland.\\
 Modern Linux Rootkits 101,
 \\\texttt{http://turbochaos.blogspot.fr/2013/09/linux-rootkits-101-1-of-3.html}
+
+\bibitem{zenk} 
+Pablo Fernández.\\
+Développement avancé d'un rootkit pour les modules du noyau Linux,
+\\\texttt{http://tinyurl.com/jtv3wqy}
+
+\bibitem{devmen}
+Anthony Lineberry. \\
+Malicious Code Injection via /dev/mem
+\\\texttt{http://tinyurl.com/zfsmmdn}
 
 \bibitem{suterusu}
 Suterusu: An LKM rootkit targeting Linux 2.6/3.x on x86(\_64), and ARM,
