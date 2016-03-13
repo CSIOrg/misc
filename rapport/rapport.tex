@@ -223,8 +223,10 @@ Faculté de Sciences et Techniques
 
         % Paragraphe à vérifier et à préciser
         Des recherches ont été faites sur deux méthodes permettant de supprimer notre rootkit de ces listes. La première se base sur le fait que les informations relatives aux modules sont stockées dans des listes chaînées. Il suffit alors d'enlever le rootkit de cette liste et les commandes telles que \texttt{lsmod} ne retourneront plus le nom de notre rootkit. Il faut également le supprimer du dossier \texttt{/sys/module/}. Pour se faire, l'instruction \texttt{kobject\_del(\&THIS\_MODULE->mobj.kobj)} va se charger de retirer l'entrée de notre module au niveau du \texttt{VFS}, le retirant ainsi du dossier \texttt{/sys/module/}.
-
-        La seconde méthode consiste à charger le module, modifier la fonction de suppression des modules, puis le retirer\cite{spacelkm}. Cette nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. \\
+        
+        La seconde méthode consiste à charger le module, modifier la fonction de suppression des modules, puis le retirer\cite{spacelkm}. Cette nouvelle fonction de suppression des modules va se comporter comme la fonction originale, sauf que le code du module ne sera pas supprimé. Cela permet de retirer toutes les informations superflues qui pourrait donner des indices à l'utilisateur légitime quant à la présence d'un rootkit, tout en gardant le code de ce dernier. 
+		
+		Il existe un outil de détection nommé \texttt{kstat} permettant d'analyser la mémoire kernel et pouvant détecter le rootkit si la première méthode est utilisée. La seconde méthode serait en mesure d'outrepasser cette détection. Cependant, cet outil repose sur le périphérique \texttt{/dev/kmem}, qui, comme nous l'avons vu précédemment, a été désactivé sur les kernels ciblés par notre rootkit. Etant donné, qu'aucun autre avantage n'a été trouvé à la seconde méthode, qui est nettement plus complexe, \texttt{rkduck} est basé sur la première. \\
         
         Au niveau des contre-mesures, il existe plusieurs méthodes empêchant l'injection de LKM malicieux. La solution la plus radicale consiste à compiler un noyau monolithique en y ajoutant, dès le départ, les modules voulus de manière statique tout en désactivant leur insertion dans le système par la suite.
 
