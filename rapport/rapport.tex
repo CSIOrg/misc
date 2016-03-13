@@ -588,7 +588,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
         
         % Bien qu'il puisse être utilisé légitimement dans des cas comme l'activation du contrôle parental ou afin de surveiller les employés, il peut l'être aussi à des fins totalement illégitime. L'intérêt  de cette collecte pour un attaquant est de pouvoir récupérer des informations sensibles tel que des passwords, numéros de carte bancaire etc. \\
         
-        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/keylogger.c}{keylogger} est rempli via la fonction \texttt{register\_keyboard\_notifier} qui va surveiller toutes les interactions avec le clavier (touche pressée, touche relevée) au niveau kernel. Lorsqu'une touche est pressée, la fonction renvoie une valeur qui correspond au numéro de sa position sur le clavier. Par exemple "ESC" est en première position, "\&" en deuxième, tandis que "a" est à la 16\textsuperscript{ème} position.
+        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/keylogger/rkduck/keylogger.c}{keylogger} est rempli via la fonction \texttt{register\_keyboard\_notifier} qui va surveiller toutes les interactions avec le clavier (touche pressée, touche relevée) au niveau kernel \cite{keylogger}. Lorsqu'une touche est pressée, la fonction renvoie une valeur qui correspond au numéro de sa position sur le clavier. Par exemple "ESC" est en première position, "\&" en deuxième, tandis que "a" est à la 16\textsuperscript{ème} position.
         
         Un tableau de caractères contenant les touches du clavier a été introduit. Ce tableau est différent si les touches Caps Lock, Shift ou Alt sont activées. De plus, suivant la région, le clavier peut posséder différentes configurations (azerty, qwerty, qwertz, etc.). Les claviers supportés pour l'instant sont les configurations azerty et qwerty standard. Il est possible d'en ajouter de nouvelles suivant le besoin. L'attaquant doit définir avant l'insertion du rootkit dans quelle configuration il veut que les événement clavier soient enregistrés. Le tout est sauvegardé à chaque retour de ligne dans un fichier temporaire.         
         %Cette action se fait avec des thread pour ne pas que l'utilisateur ne subisse de ralentissement sur sa machine et suspecte quelque chose.
@@ -630,7 +630,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
 
 \addcontentsline{toc}{section}{References}
 \bibliographystyle{plain}
-\begin{thebibliography}{9}
+\begin{thebibliography}{13}
 
 \bibitem{turbochaos} 
 Tyler Borland.\\
@@ -665,30 +665,30 @@ Kernel Rootkits,
 \\\href{http://www.sans.org/reading-room/whitepapers/threats/kernel-rootkits-449}{\texttt{http://www.sans.org/reading-room/whitepapers/threats/
 \\kernel-rootkits-449}}
 
-\bibitem{devkmem}
-Who needs /dev/kmem?,
-\\\href{https://lwn.net/Articles/147901/}{\texttt{https://lwn.net/Articles/147901/}}
-
 \bibitem{devmen}
 Anthony Lineberry. \\
 Malicious Code Injection via /dev/mem
 \\\href{https://www.blackhat.com/presentations/bh-europe-09/Lineberry/BlackHat-Europe-2009-Lineberry-code-injection-via-dev-mem.pdf}{\texttt{https://www.blackhat.com/presentations/bh-europe-09/Lineberry/
 \\BlackHat-Europe-2009-Lineberry-code-injection-via-dev-mem.pdf}}
 
-\bibitem{suterusu}
-Suterusu: An LKM rootkit targeting Linux 2.6/3.x on x86(\_64), and ARM,
-\\\href{https://github.com/mncoppola/suterusu}{\texttt{https://github.com/mncoppola/suterusu}}
-
 \bibitem{sstic}
 Éric Lacombe, Frédéric Raynal et Vincent Nicomette.\\
 De l’invisibilité des rootkits : application sous Linux,
 \\\href{http://esec-lab.sogeti.com/static/publications/07-sstic-rootkits\_article.pdf}{\texttt{http://esec-lab.sogeti.com/static/publications/
-\\07-sstic-rootkits\_article.pdf}}
+07-sstic-rootkits\_article.pdf}}
 
 \bibitem{spacelkm}
 SpaceWalker.\\
 Indetectable Linux Kernel Modules,
 \\\href{http://www.ouah.org/spacelkm.txt}{\texttt{http://www.ouah.org/spacelkm.txt}}
+
+\bibitem{devkmem}
+Who needs /dev/kmem?,
+\\\href{https://lwn.net/Articles/147901/}{\texttt{https://lwn.net/Articles/147901/}}
+
+\bibitem{suterusu}
+Suterusu: An LKM rootkit targeting Linux 2.6/3.x on x86(\_64), and ARM,
+\\\href{https://github.com/mncoppola/suterusu}{\texttt{https://github.com/mncoppola/suterusu}}
 
 \bibitem{hackin9}
 Chico Del Rio.\\
@@ -721,6 +721,11 @@ Hit by a Bus: Physical Access Attacks with Firewire,
 \\\href{http://www.security-assessment.com/files/presentations/ab\_firewire\_rux2k6-final.pdf}{\texttt{http://www.security-assessment.com/files/presentations/
 \\ab\_firewire\_rux2k6-final.pdf}}
 
+\bibitem{keylogger}
+Building your own kernel space keylogger,
+\\\href{https://www.gadgetweb.de/programming/39-how-to-building-your-own-kernel-space-keylogger.html}{\texttt{https://www.gadgetweb.de/programming/39-how-to-building-
+\\ your-own-kernel-space-keylogger.html}}
+
 \bibitem{rkhunter}
 The Rootkit Hunter Project,
 \\\href{http://rkhunter.sourceforge.net/}{\texttt{http://rkhunter.sourceforge.net/}}
@@ -737,6 +742,7 @@ Rootcheck,
 \bibitem{lynis}
 Lynis,
 \\\href{https://cisofy.com/lynis/}{\texttt{https://cisofy.com/lynis/}}
+
 
 \end{thebibliography}
 
