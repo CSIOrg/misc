@@ -123,7 +123,7 @@
 \location{Bordeaux}\blurb{}
 \makeatother
 \title{\textbf{\textit{rkduck} : LKM rootkit Linux 4.x.x}}
-\author{Maxime Peterlin, Martial Puygrenier}
+\author{Thomas Le Bourlot, Maxime Peterlin, Martial Puygrenier}
 \location{Bordeaux}
 \blurb{
 Université de Bordeaux\\
@@ -190,13 +190,13 @@ Faculté de Sciences et Techniques
 
 \section{Injection en mémoire}
 
-    Il existe plusieurs méthodes d'injection de code dans un noyau. Les deux méthodes les plus répendues seront étudiées dans cette partie, à savoir l'utilisation du périphérique \texttt{/dev/mem}\cite{devmen} et les modules noyau\cite{turbochaos}. À titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire}\cite{firewire} qui permet d'avoir un accès direct à toute la mémoire de la machine, cette méthode nécessite cependant un accès physique à celle-ci.
+    Il existe plusieurs méthodes d'injection de code dans un noyau. Les deux méthodes les plus répandues seront étudiées dans cette partie, à savoir l'utilisation du périphérique \texttt{/dev/mem}\cite{devmen} et les modules noyau\cite{turbochaos}. À titre informatif, il est également possible d'utiliser des vulnérabilités du noyau ou bien l'entrée \texttt{FireWire}\cite{firewire} qui permet d'avoir un accès direct à toute la mémoire de la machine, cette méthode nécessite cependant un accès physique à celle-ci.
 
     Afin de développer \texttt{rkduck} une première approche consistait à utiliser l'injection basée sur \texttt{/dev/mem}. Cependant, un patch de sécurité empêche son utilisation sur les versions 4.x.x du noyau Linux, d'où le fait que \texttt{rkduck} est un LKM rootkit.
 
     \subsection{Injection via /dev/mem}
     
-        \texttt{/dev/mem} est un fichier fournissant un accès à une image de la mémoire physique de la machine. L'intérêt principal d'un tel fichier est de pouvoir accéder directement à la mémoire sans écrire un driver kernel. Il devient alors plus aisé et rapide d'examiner la mémoire et de patcher le sytème. \texttt{/dev/mem} est un point d'entrée pour injecter du code malicieux\cite{hackin9}\cite{sstic} car, si un attaquant peut écrire dans \texttt{/dev/mem}, alors il pourra modifier des parties du kernel, notamment la table des appels systèmes ou encore les fonctions liées au \texttt{Virtual File System} (VFS), techniques qui seront détaillées par la suite.\\
+        \texttt{/dev/mem} est un fichier fournissant un accès à une image de la mémoire physique de la machine. L'intérêt principal d'un tel fichier est de pouvoir accéder directement à la mémoire sans écrire un driver kernel. Il devient alors plus aisé et rapide d'examiner la mémoire et de patcher le sytème. \texttt{/dev/mem} est un point d'entrée pour injecter du code malicieux\cite{devmen}\cite{hackin9}\cite{sstic} car, si un attaquant peut écrire dans \texttt{/dev/mem}, alors il pourra modifier des parties du kernel, notamment la table des appels systèmes ou encore les fonctions liées au \texttt{Virtual File System} (VFS), techniques qui seront détaillées par la suite.\\
         
         L'intérêt de cette méthode est qu'elle est plus discrète que, par exemple, une injection via un module noyau. En effet, lorsqu'on injecte un LKM il est toujours possible d'effectuer une analyse comportementale ou bien de rajouter une vérification d'authenticité par signature cryptographique. Dans le cas de \texttt{/dev/mem}, l'injection est directe dans la mémoire kernel et il n'y a pas d'interface qui pourrait se charger de vérifier le caractère malveillant ou non du code injecté.\\
         
@@ -213,7 +213,7 @@ Faculté de Sciences et Techniques
 
     \subsection{Injection via un Loadable Kernel Module (LKM)}
 
-        Les \textit{Loadable Kernel Modules} sont un moyen pratique de modifier le kernel pendant qu'il s'exécute. Ils permettent ainsi de rajouter ou de supprimer des fonctionnalités (comme des drivers) au noyau sans pour autant redémarrer le système ou le recompiler. \\
+        Les \textit{Loadable Kernel Modules} sont un moyen pratique de modifier le kernel pendant qu'il s'exécute. Ils permettent ainsi de rajouter ou de supprimer des fonctionnalités (comme des drivers) au noyau sans pour autant redémarrer le système ou le recompiler \cite{LKM}. \\
         
         Ces modules s'exécutent en espace noyau et en possède donc les droits d'exécution. Si un attaquant est capable d'injecter un tel module, alors il pourra avoir la main sur le kernel et, a fortiori, sur l'ensemble de la machine. De la même manière qu'avec l'injection via \texttt{/dev/mem} il est possible de s'attaquer aux appels systèmes et au VFS (cf. section ~\ref{sec:vfs}) pour falsifier les informations que l'administrateur légitime de la machine tenterait d'obtenir et ainsi rendre notre rootkit invisible. \\
         
@@ -351,7 +351,7 @@ int duck_init(void) {
     \subsection{Détournement du \texttt{Virtual File System}}
     \label{sec:vfs}
     
-        Le VFS est une couche de communication se situant entre le kernel et le système de fichier utilisé (ext3, ext4, etc.). C'est lui qui se chargera de traduire les instructions envoyées par le kernel pour qu'elles soient compréhensibles par le système de fichiers.
+        Le VFS est une couche de communication se situant entre le kernel et le système de fichier utilisé (ext3, ext4, etc.). C'est lui qui se chargera de traduire les instructions envoyées par le kernel pour qu'elles soient compréhensibles par le système de fichiers \cite{VFS}.
         L'intérêt de s'attaquer au VFS est de pouvoir cacher des informations. Ainsi, on va pouvoir dissimuler des fichiers, des dossiers, mais aussi des processus grâce à des hooks sur des fonctions du VFS (i.e. modification des pointeurs de fonction). \\
 
         La suite de cette partie sera illustrés via la construction d'un système permettant de dissimuler un fichier nommé \texttt{rkduck}. Le même principe pourra se généraliser à une liste de fichiers à cacher, mais aussi s'appliquer à la dissimulation de processus ou de connexions réseaux. 
@@ -497,12 +497,11 @@ struct hidden_file {
 \begin{center}
 \includegraphics{./img/bind-shell.png}
 
-\caption[dsfsdf]{bind shell}
-\label{figure:2}
+\caption[dsfsdf]{bind shell}\label{figure:2}
 \end{center}
 \end{figure}
             
-            L'exécution des commandes se fait via un appel à la fonction \texttt{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, la sortie standard a été redirigée vers un fichier temporaire \texttt{/tmp/.cmd} caché par \texttt{rkduck}. Le résultat est lu puis renvoyé à l'attaquant. Lorsque la connexion est interrompue, ce fichier est supprimé.
+            L'exécution des commandes se fait via un appel à la fonction \href{https://www.kernel.org/doc/htmldocs/kernel-api/API-call-usermodehelper.html}{ call\_usermodhelper(...)}. Comme il n'est pas possible de récupérer le résultat des commandes directement, la sortie standard a été redirigée vers un fichier temporaire \texttt{/tmp/.cmd} caché par \texttt{rkduck}. Le résultat est lu puis renvoyé à l'attaquant. Lorsque la connexion est interrompue, ce fichier est supprimé.
             
         \subsubsection{Reverse shell}
             
@@ -512,8 +511,7 @@ struct hidden_file {
 \begin{center}
 \includegraphics{./img/reverse-shell.png}
 
-\caption[dsfsdf]{reverse shell}
-\label{figure:3}
+\caption[dsfsdf]{reverse shell}\label{figure:3}
 \end{center}
 \end{figure}
             
@@ -592,7 +590,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
         
         % Bien qu'il puisse être utilisé légitimement dans des cas comme l'activation du contrôle parental ou afin de surveiller les employés, il peut l'être aussi à des fins totalement illégitime. L'intérêt  de cette collecte pour un attaquant est de pouvoir récupérer des informations sensibles tel que des passwords, numéros de carte bancaire etc. \\
         
-        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/master/rkduck/keylogger.c}{keylogger} est rempli via la fonction \texttt{register\_keyboard\_notifier} qui va surveiller toutes les interactions avec le clavier (touche pressée, touche relevée) au niveau kernel. Lorsqu'une touche est pressée, la fonction renvoie une valeur qui correspond au numéro de sa position sur le clavier. Par exemple "ESC" est en première position, "\&" en deuxième, tandis que "a" est à la 16\textsuperscript{ème} position.
+        Le rôle de notre \href{https://github.com/QuokkaLight/rkduck/blob/keylogger/rkduck/keylogger.c}{keylogger} est rempli via la fonction \texttt{register\_keyboard\_notifier} qui va surveiller toutes les interactions avec le clavier (touche pressée, touche relevée) au niveau kernel \cite{keylogger}. Lorsqu'une touche est pressée, la fonction renvoie une valeur qui correspond au numéro de sa position sur le clavier. Par exemple "ESC" est en première position, "\&" en deuxième, tandis que "a" est à la 16\textsuperscript{ème} position.
         
         Un tableau de caractères contenant les touches du clavier a été introduit. Ce tableau est différent si les touches Caps Lock, Shift ou Alt sont activées. De plus, suivant la région, le clavier peut posséder différentes configurations (azerty, qwerty, qwertz, etc.). Les claviers supportés pour l'instant sont les configurations azerty et qwerty standard. Il est possible d'en ajouter de nouvelles suivant le besoin. L'attaquant doit définir avant l'insertion du rootkit dans quelle configuration il veut que les événement clavier soient enregistrés. Le tout est sauvegardé à chaque retour de ligne dans un fichier temporaire.         
         %Cette action se fait avec des thread pour ne pas que l'utilisateur ne subisse de ralentissement sur sa machine et suspecte quelque chose.
@@ -620,7 +618,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
     
     L'utilisation de honeypots\footnote{Environnements contrôlés feignant d'être vulnérables afin de piéger d'éventuels attaquants.} sur un réseau, en supposant que ce dernier soit suffisamment isolé des environnements réels, est un moyen sûr permettant de connaître les nouveaux rootkits. Cela permettrait de le désassembler et d'étudier son fonctionnement afin d'établir de nouvelles règles pour les IDS\footnote{Intrusion Detection System} ou d'ajouter des signatures aux programmes de détection listés ci-dessus.
    
-    Les outils présentés dans cette partie ne garantissent pas une détection totale et, même si le rootkit est découvert, il faut encore pouvoir le supprimer. Par exemple, certains rootkits peuvent être développés afin d'être robustes. Aucun n'exemple n'a pu être trouvé de tels rootkits, mais ils pourraient potentiellement s'injecter dans tous les fichiers non-volatiles du système, menacer l'utilisateur de provoquer des dégâts sur sa machine s'il détecte une analyse sur ses composants, etc. L'objectif étant que l'utilisateur légitime doit être "gagnant" s'il ne supprime pas le rootkit et que la seule solution serait alors de réinstaller entièrement le système.
+    Les outils présentés dans cette partie ne garantissent pas une détection totale et, même si le rootkit est découvert, il faut encore pouvoir le supprimer. Par exemple, certains rootkits peuvent être développés afin d'être robustes. Aucun n'exemple n'a pu être trouvé de tels rootkits, mais ils pourraient potentiellement s'injecter dans tous les fichiers non-volatiles du système, menacer l'utilisateur de provoquer des dégâts sur sa machine s'il détecte une analyse sur ses composants, etc. L'objectif étant que l'utilisateur légitime doit être "gagnant" s'il ne supprime pas le rootkit et que la seule solution serait alors de réinstaller entièrement le système \cite{sstic}.
     
 \section*{Conclusion}
 \addcontentsline{toc}{section}{Conclusion}
@@ -634,7 +632,7 @@ C'est dans ce but qu'un pare-feu basique a été ajouté à l'intérieur du root
 
 \addcontentsline{toc}{section}{References}
 \bibliographystyle{plain}
-\begin{thebibliography}{9}
+\begin{thebibliography}{22}
 
 \bibitem{turbochaos} 
 Tyler Borland.\\
@@ -645,7 +643,7 @@ Modern Linux Rootkits 101,
 Tyler Borland.\\
 Modern Linux Rootkits 101,
 \\\href{http://turbochaos.blogspot.fr/2013/10/writing-linux-rootkits-201-23.html}{\texttt{http://turbochaos.blogspot.fr/2013/10/
-\\writing-linux-rootkits-201-23.htmlhtml}}
+\\writing-linux-rootkits-201-23.html}}
 
 \bibitem{zenk} 
 Pablo Fernández.\\
@@ -669,30 +667,30 @@ Kernel Rootkits,
 \\\href{http://www.sans.org/reading-room/whitepapers/threats/kernel-rootkits-449}{\texttt{http://www.sans.org/reading-room/whitepapers/threats/
 \\kernel-rootkits-449}}
 
-\bibitem{devkmem}
-Who needs /dev/kmem?,
-\\\href{https://lwn.net/Articles/147901/}{\texttt{https://lwn.net/Articles/147901/}}
-
 \bibitem{devmen}
 Anthony Lineberry. \\
 Malicious Code Injection via /dev/mem
 \\\href{https://www.blackhat.com/presentations/bh-europe-09/Lineberry/BlackHat-Europe-2009-Lineberry-code-injection-via-dev-mem.pdf}{\texttt{https://www.blackhat.com/presentations/bh-europe-09/Lineberry/
 \\BlackHat-Europe-2009-Lineberry-code-injection-via-dev-mem.pdf}}
 
-\bibitem{suterusu}
-Suterusu: An LKM rootkit targeting Linux 2.6/3.x on x86(\_64), and ARM,
-\\\href{https://github.com/mncoppola/suterusu}{\texttt{https://github.com/mncoppola/suterusu}}
-
 \bibitem{sstic}
 Éric Lacombe, Frédéric Raynal et Vincent Nicomette.\\
 De l’invisibilité des rootkits : application sous Linux,
 \\\href{http://esec-lab.sogeti.com/static/publications/07-sstic-rootkits\_article.pdf}{\texttt{http://esec-lab.sogeti.com/static/publications/
-\\07-sstic-rootkits\_article.pdf}}
+07-sstic-rootkits\_article.pdf}}
 
 \bibitem{spacelkm}
 SpaceWalker.\\
 Indetectable Linux Kernel Modules,
 \\\href{http://www.ouah.org/spacelkm.txt}{\texttt{http://www.ouah.org/spacelkm.txt}}
+
+\bibitem{devkmem}
+Who needs /dev/kmem?,
+\\\href{https://lwn.net/Articles/147901/}{\texttt{https://lwn.net/Articles/147901/}}
+
+\bibitem{suterusu}
+Suterusu: An LKM rootkit targeting Linux 2.6/3.x on x86(\_64), and ARM,
+\\\href{https://github.com/mncoppola/suterusu}{\texttt{https://github.com/mncoppola/suterusu}}
 
 \bibitem{hackin9}
 Chico Del Rio.\\
@@ -703,6 +701,16 @@ Rootkits : à la pointe de la technologie,
 Raynal Frédéricn Yan Berthier, Philippe Biondi, Danielle Kaminisky.\\
 Honeypot Forensices Part I: Analyzing the Network,
 \\\href{http://folk.uio.no/ingardm/sysarp/honeypot\_forensics\_1.pdf}{\texttt{http://folk.uio.no/ingardm/sysarp/honeypot\_forensics\_1.pdf}}
+
+\bibitem{LKM}
+Bryan Henderson.\\
+Linux Loadable Kernel Module HOWTO,
+\\\href{http://www.tldp.org/HOWTO/pdf/Module-HOWTO.pdf}{\texttt{http://www.tldp.org/HOWTO/pdf/Module-HOWTO.pdf}}
+
+\bibitem{VFS}
+Alessandro Rubini.\\
+The “Virtual File System” in Linux,
+\\\href{http://www.linuxjournal.com/article/2108}{\texttt{http://www.linuxjournal.com/article/2108}}
 
 \bibitem{detection}
 Ashwni Ramaswamy.\\
@@ -715,6 +723,11 @@ Hit by a Bus: Physical Access Attacks with Firewire,
 \\\href{http://www.security-assessment.com/files/presentations/ab\_firewire\_rux2k6-final.pdf}{\texttt{http://www.security-assessment.com/files/presentations/
 \\ab\_firewire\_rux2k6-final.pdf}}
 
+\bibitem{keylogger}
+Building your own kernel space keylogger,
+\\\href{https://www.gadgetweb.de/programming/39-how-to-building-your-own-kernel-space-keylogger.html}{\texttt{https://www.gadgetweb.de/programming/39-how-to-building-
+\\ your-own-kernel-space-keylogger.html}}
+
 \bibitem{rkhunter}
 The Rootkit Hunter Project,
 \\\href{http://rkhunter.sourceforge.net/}{\texttt{http://rkhunter.sourceforge.net/}}
@@ -725,11 +738,13 @@ Chrootkit,
 
 \bibitem{rootcheck}
 Rootcheck,
-\\\href{http://ossec-docs.readthedocs.org/en/latest/manual/rootcheck/manual-rootcheck.html}{\texttt{http://ossec-docs.readthedocs.org/en/latest/manual/rootcheck/manual-rootcheck.html}}
+\\\href{http://ossec-docs.readthedocs.org/en/latest/manual/rootcheck/manual-rootcheck.html}{\texttt{http://ossec-docs.readthedocs.org/en/latest/
+\\ manual/rootcheck/manual-rootcheck.html}}
 
 \bibitem{lynis}
 Lynis,
 \\\href{https://cisofy.com/lynis/}{\texttt{https://cisofy.com/lynis/}}
+
 
 \end{thebibliography}
 
