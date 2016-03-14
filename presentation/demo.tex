@@ -28,7 +28,7 @@
   \tableofcontents[hideallsubsections]
 \end{frame}
 
-\section{Introduction}
+\section*{Introduction}
 
 	% Présentation du projet
 	%	Ce qu'on devait faire
@@ -38,24 +38,42 @@
 
 \section{Qu'est-ce qu'un rootkit ?}
 
+
 	% Définition d'un rootkit
 	% 	Userspace + exemples
 	% 	Kernel space + exemples
 	
 
 	\begin{frame}{Définition d'un rootkit}
+	
+	\begin{alertblock}{Définition}
+		\textbf{Rootktit}: "outil de dissimulation d'activité", le but est d'obtenir et de pérenniser un accès (généralement non autorisé) à un ordinateur de la manière la plus furtive possible.
+    \end{alertblock}
+    
+	\end{frame}
+	
+		\begin{frame}{Définition d'un rootkit}
+
+    
 		\textbf{Rootkits en espace utilisateur}
+		
+		Ring 3, exploitation de vulnérabilité (privilege escalation), backdoors...
 		\begin{itemize}
-			\item ...
-			\item Exemples
+			\item lkr
+			\item trOn
+			\item ark
 		\end{itemize}
 		
 		\textbf{Rootkits en espace noyau}
+		
+		Ring 0, furtivité, backdoor, récupération d'informations (log, clé privée)
 		\begin{itemize}
-			\item ...
-			\item Exemples
+			\item Enye LKM
+			\item SucKIT - \texttt{/dev/mem}
+			\item ADORE Rootkit
 		\end{itemize}
 	\end{frame}
+
 
 \section{Injection et persistance}
 
@@ -78,6 +96,16 @@
 	\end{frame}
 
 	\begin{frame}{Persistance}
+		
+		\begin{itemize}
+			\item Un module kernel n'est pas persistant par défaut
+			\item définit dans \texttt{/etc/modules}
+			\item Le nom du module injecté doit paraitre légitime (\texttt{graphics.ko}, \texttt{audio.ko}...)
+			\item \alert{l'utilisateur ne doit pas supprimer le module ou le nom du module dans le fichier \texttt{/etc/modules} sinon perte de la persistance}.
+		\end{itemize}
+
+		
+		
 	\end{frame}
 
 	% Présentation des méthodes d'injection (/dev/mem, LKM, firewire)
@@ -91,18 +119,161 @@
 	% VFS
 	
 	\begin{frame}{Appels système}
+		TODO
 	\end{frame}
 
 	\begin{frame}{\texttt{Virtual File System} (VFS)}
+		TODO
 	\end{frame}
 
 \section{Fonctionnalités}
 
+\begin{frame}{Backdoor }
+	
+	\begin{alertblock}{Définition}
+		\textbf{Backdoor}: "porte dérobée", s'apparente une fonctionnalité inconnue de l'utilisateur légitime, qui donne un accès secret au system.
+    \end{alertblock}
+    
+	\begin{alertblock}{Types}
+		\begin{enumerate}
+			\item reverse shell
+			\item bind shell
+		\end{enumerate}
+    \end{alertblock}
+
+\end{frame}
+
+\begin{frame}{Backdoor - reverse shell}
+	
+	\begin{alertblock}{reverse shell}
+		  \begin{figure}
+			\begin{center}
+				\includegraphics[scale=0.6]{reverse-shell.png}
+			\end{center}
+  		  \end{figure}
+    \end{alertblock}
+
+
+\end{frame}
+
+
+\begin{frame}{Backdoor - bind shell}
+	
+	\begin{alertblock}{bind shell}
+		  \begin{figure}
+			\begin{center}
+				\includegraphics[scale=0.6]{bind-shell.png}
+			\end{center}
+  		  \end{figure}
+    \end{alertblock}
+
+
+\end{frame}
+
+\begin{frame}{Backdoor - Activation}
+	
+	\begin{alertblock}{Définition}
+		\textbf{Backdoor}: "porte dérobée", s'apparente une fonctionnalité inconnue de l'utilisateur légitime, qui donne un accès secret au system.
+    \end{alertblock}
+    
+	\begin{alertblock}{Types}
+		\begin{enumerate}
+			\item reverse shell
+			\item bind shell
+		\end{enumerate}
+    \end{alertblock}
+    
+	\begin{alertblock}{Activation}
+		\begin{enumerate}
+			\item timer callback
+			\item packet ICMP
+			\item port knocking
+		\end{enumerate}
+    \end{alertblock}
+
+
+\end{frame}
+
+\begin{frame}{Keylogger}
+	
+	\begin{alertblock}{Définition}
+		\textbf{Keylogger}: "enregistreur de frappe", un logiciel espion inconnue de l'utilisateur légitime, qui enregistre toutes les actions clavier.
+    \end{alertblock}
+
+\end{frame}
+
+\begin{frame}{Furtivité}
+	
+	\begin{alertblock}{Définition}
+		\textbf{Furtivité}:  effacement de traces, masquage de l'activité et des communications...
+    \end{alertblock}
+	\begin{itemize}
+		\item processus
+		\item fichiers
+		\item dossiers
+		\item utilisateurs
+	\end{itemize}	 
+
+\end{frame}
+
 
 \section{Détection}
 
+\begin{frame}{Méthodes}
+	
+	\begin{enumerate}
+		\item recherche d'anomalies
+		\item comparaison des signatures des modules kernel
+	\end{enumerate}
+	
 
-\section{Conclusion}
+\end{frame}
+
+\begin{frame}{Outils}
+	
+	Différents outils de détection de rootkits
+	\begin{itemize}
+		\item \href{http://rkhunter.sourceforge.net/}{RkHunter} - \alert{warning}
+		\item \href{http://www.chkrootkit.org/}{Chkrootkit} - {\color[rgb]{0,0.8,0.3} no warning}
+		\item \href{http://ossec.github.io/}{OSSEC}   - {\color{gray} not tested}
+		\item \href{https://cisofy.com/lynis/}{Lynis} - \alert{warning}
+	\end{itemize}
+	
+\end{frame}
+
+
+\section*{Conclusion}
+
+\begin{frame}{Conclusion}
+	
+	\begin{itemize}
+		\item Fonctionnement des rootkits
+		\item Développement au niveau du Kernel
+		\item kernel panic, kernel panic, kernel panic
+		\item Évolution du rooktit par rapport aux version du kernel
+		\item Ajouter des nouvelles fonctionnalité au rootkit (chiffrement des données, obfuscation, améliorer la persistance...)
+		
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Conclusion}
+
+  \begin{center}Le code source \texttt{rkduck} est disponibles à l'adresse suivante : \end{center}
+
+  \begin{center}\url{github.com/QuokkaLight/rkduck}\end{center}
+  
+  \begin{figure}
+	\begin{center}
+	\includegraphics[scale=0.3]{logo_blk.png}
+	\end{center}
+  \end{figure}
+
+\end{frame}
+
+
+\plain{Questions?}
+
 
 
 %
