@@ -1,0 +1,12 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{int} \PYG{n+nf}{set\PYGZus{}page\PYGZus{}rw}\PYG{p}{(}\PYG{n}{ptr\PYGZus{}t} \PYG{n}{address}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+    \PYG{k+kt}{unsigned} \PYG{k+kt}{int} \PYG{n}{level}\PYG{p}{;}
+    \PYG{n}{pte\PYGZus{}t} \PYG{o}{*}\PYG{n}{pte} \PYG{o}{=} \PYG{n}{lookup\PYGZus{}address}\PYG{p}{(}\PYG{n}{address}\PYG{p}{,} \PYG{o}{\PYGZam{}}\PYG{n}{level}\PYG{p}{);}
+
+    \PYG{k}{if} \PYG{p}{(}\PYG{n}{pte}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pte} \PYG{o}{\PYGZam{}\PYGZti{}} \PYG{n}{\PYGZus{}PAGE\PYGZus{}RW}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{n}{pte}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{pte} \PYG{o}{|=} \PYG{n}{\PYGZus{}PAGE\PYGZus{}RW}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{k}{return} \PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

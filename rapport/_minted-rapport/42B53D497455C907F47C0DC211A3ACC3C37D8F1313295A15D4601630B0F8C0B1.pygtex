@@ -1,0 +1,13 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{int} \PYG{n+nf}{vfs\PYGZus{}hijacked\PYGZus{}iterate}\PYG{p}{(}\PYG{k}{struct} \PYG{n}{file} \PYG{o}{*}\PYG{n}{file}\PYG{p}{,} \PYG{k}{struct} \PYG{n}{dir\PYGZus{}context} \PYG{o}{*}\PYG{n}{ctx}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+    \PYG{k+kt}{int} \PYG{n}{ret}\PYG{p}{;}
+
+    \PYG{o}{*}\PYG{p}{((}\PYG{n}{filldir\PYGZus{}t} \PYG{o}{*}\PYG{p}{)}\PYG{o}{\PYGZam{}}\PYG{n}{ctx}\PYG{o}{\PYGZhy{}\PYGZgt{}}\PYG{n}{actor}\PYG{p}{)} \PYG{o}{=} \PYG{o}{\PYGZam{}}\PYG{n}{vfs\PYGZus{}hijacked\PYGZus{}filldir}\PYG{p}{;}
+
+    \PYG{n}{vfs\PYGZus{}hijack\PYGZus{}stop}\PYG{p}{(}\PYG{n}{vfs\PYGZus{}original\PYGZus{}iterate}\PYG{p}{);}
+    \PYG{n}{ret} \PYG{o}{=} \PYG{n}{vfs\PYGZus{}original\PYGZus{}iterate}\PYG{p}{(}\PYG{n}{file}\PYG{p}{,} \PYG{n}{ctx}\PYG{p}{);}
+    \PYG{n}{vfs\PYGZus{}hijack\PYGZus{}start}\PYG{p}{(}\PYG{n}{vfs\PYGZus{}original\PYGZus{}iterate}\PYG{p}{);}
+
+    \PYG{k}{return} \PYG{n}{ret}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

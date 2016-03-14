@@ -1,0 +1,10 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{int} \PYG{n+nf}{duck\PYGZus{}init}\PYG{p}{(}\PYG{k+kt}{void}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+    \PYG{c+cm}{/* [...] */}
+    \PYG{n}{set\PYGZus{}page\PYGZus{}rw}\PYG{p}{((}\PYG{n}{ptr\PYGZus{}t}\PYG{p}{)} \PYG{n}{sys\PYGZus{}call\PYGZus{}table}\PYG{p}{);}
+    \PYG{n}{original\PYGZus{}write} \PYG{o}{=} \PYG{n}{xchg}\PYG{p}{(}\PYG{o}{\PYGZam{}}\PYG{n}{sys\PYGZus{}call\PYGZus{}table}\PYG{p}{[}\PYG{n}{\PYGZus{}\PYGZus{}NR\PYGZus{}write}\PYG{p}{],} \PYG{n}{duck\PYGZus{}write}\PYG{p}{);}
+    \PYG{n}{set\PYGZus{}page\PYGZus{}ro}\PYG{p}{((}\PYG{n}{ptr\PYGZus{}t}\PYG{p}{)} \PYG{n}{sys\PYGZus{}call\PYGZus{}table}\PYG{p}{);}
+	\PYG{c+cm}{/* [...] */}
+    \PYG{k}{return} \PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

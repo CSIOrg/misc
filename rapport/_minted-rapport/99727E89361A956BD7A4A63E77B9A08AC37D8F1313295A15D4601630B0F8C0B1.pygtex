@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{struct} \PYG{n}{file\PYGZus{}operations} \PYG{p}{\PYGZob{}}
+  \PYG{c+cm}{/* [...] */}
+  \PYG{k+kt}{int} \PYG{p}{(}\PYG{o}{*}\PYG{n}{iterate}\PYG{p}{)} \PYG{p}{(}\PYG{k}{struct} \PYG{n}{file} \PYG{o}{*}\PYG{p}{,} \PYG{k}{struct} \PYG{n}{dir\PYGZus{}context} \PYG{o}{*}\PYG{p}{);}
+  \PYG{c+cm}{/* [...] */}
+\PYG{p}{\PYGZcb{};}
+\end{Verbatim}

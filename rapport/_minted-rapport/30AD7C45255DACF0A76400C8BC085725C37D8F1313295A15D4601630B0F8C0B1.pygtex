@@ -1,0 +1,20 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{asmlinkage} \PYG{k+kt}{ssize\PYGZus{}t} \PYG{n+nf}{duck\PYGZus{}write}\PYG{p}{(}\PYG{k+kt}{int} \PYG{n}{fd}\PYG{p}{,} \PYG{k}{const} \PYG{k+kt}{char} \PYG{n}{\PYGZus{}\PYGZus{}user} \PYG{o}{*}\PYG{n}{buff}\PYG{p}{,}
+                              \PYG{k+kt}{ssize\PYGZus{}t} \PYG{n}{count}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+    \PYG{k+kt}{int} \PYG{n}{r} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{;}
+    \PYG{k+kt}{char} \PYG{o}{*}\PYG{n}{proc\PYGZus{}protect} \PYG{o}{=} \PYG{l+s}{\PYGZdq{}.rkduck\PYGZdq{}}\PYG{p}{;}
+    \PYG{k+kt}{char} \PYG{o}{*}\PYG{n}{kbuff} \PYG{o}{=} \PYG{p}{(}\PYG{k+kt}{char} \PYG{o}{*}\PYG{p}{)} \PYG{n}{kmalloc}\PYG{p}{(}\PYG{l+m+mi}{256}\PYG{p}{,} \PYG{n}{GFP\PYGZus{}KERNEL}\PYG{p}{);}
+
+    \PYG{k}{if} \PYG{p}{(}\PYG{o}{!}\PYG{n}{copy\PYGZus{}from\PYGZus{}user}\PYG{p}{(}\PYG{n}{kbuff}\PYG{p}{,} \PYG{n}{buff}\PYG{p}{,} \PYG{l+m+mi}{255}\PYG{p}{))} \PYG{p}{\PYGZob{}}
+        \PYG{k}{if} \PYG{p}{(}\PYG{n}{strstr}\PYG{p}{(}\PYG{n}{kbuff}\PYG{p}{,} \PYG{n}{proc\PYGZus{}protect}\PYG{p}{))} \PYG{p}{\PYGZob{}}
+            \PYG{n}{kfree}\PYG{p}{(}\PYG{n}{kbuff}\PYG{p}{);}
+            \PYG{k}{return} \PYG{n}{EEXIST}\PYG{p}{;}
+        \PYG{p}{\PYGZcb{}}
+
+        \PYG{n}{r} \PYG{o}{=} \PYG{p}{(}\PYG{o}{*}\PYG{n}{original\PYGZus{}write}\PYG{p}{)(}\PYG{n}{fd}\PYG{p}{,} \PYG{n}{buff}\PYG{p}{,} \PYG{n}{count}\PYG{p}{);}
+        \PYG{n}{kfree}\PYG{p}{(}\PYG{n}{kbuff}\PYG{p}{);}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{k}{return} \PYG{n}{r}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

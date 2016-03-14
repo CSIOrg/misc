@@ -1,0 +1,26 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+cp}{\PYGZsh{}if defined(\PYGZus{}\PYGZus{}i386\PYGZus{}\PYGZus{}) }\PYG{c+cm}{/* x86 */}
+    \PYG{c+cp}{\PYGZsh{}define SCT\PYGZus{}START\PYGZus{}CHECK 0xc0000000}
+    \PYG{c+cp}{\PYGZsh{}define SCT\PYGZus{}END\PYGZus{}CHECK   0xd0000000}
+    \PYG{k}{typedef} \PYG{k+kt}{unsigned} \PYG{k+kt}{int} \PYG{n}{ptr\PYGZus{}t}\PYG{p}{;}
+\PYG{c+cp}{\PYGZsh{}else }\PYG{c+cm}{/* x86\PYGZus{}64 */}
+    \PYG{c+cp}{\PYGZsh{}define SCT\PYGZus{}START\PYGZus{}CHECK 0xffffffff81000000}
+    \PYG{c+cp}{\PYGZsh{}define SCT\PYGZus{}END\PYGZus{}CHECK   0xffffffffa2000000}
+    \PYG{k}{typedef} \PYG{k+kt}{unsigned} \PYG{k+kt}{long} \PYG{n}{ptr\PYGZus{}t}\PYG{p}{;}
+\PYG{c+cp}{\PYGZsh{}endif }\PYG{c+cm}{/* arch */}
+
+\PYG{n}{ptr\PYGZus{}t} \PYG{n+nf}{find\PYGZus{}syscall\PYGZus{}table}\PYG{p}{(}\PYG{k+kt}{void}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+    \PYG{n}{ptr\PYGZus{}t}\PYG{o}{**} \PYG{n}{sc\PYGZus{}table}\PYG{p}{;}
+    \PYG{n}{ptr\PYGZus{}t} \PYG{n}{addr} \PYG{o}{=} \PYG{n}{SCT\PYGZus{}START\PYGZus{}CHECK}\PYG{p}{;}
+
+    \PYG{k}{while} \PYG{p}{(}\PYG{n}{addr} \PYG{o}{\PYGZlt{}} \PYG{n}{SCT\PYGZus{}END\PYGZus{}CHECK}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+        \PYG{n}{sc\PYGZus{}table} \PYG{o}{=} \PYG{p}{(}\PYG{n}{ptr\PYGZus{}t}\PYG{o}{**}\PYG{p}{)} \PYG{n}{addr}\PYG{p}{;}
+        \PYG{k}{if} \PYG{p}{(}\PYG{n}{sc\PYGZus{}table}\PYG{p}{[}\PYG{n}{\PYGZus{}\PYGZus{}NR\PYGZus{}close}\PYG{p}{]} \PYG{o}{==} \PYG{p}{(}\PYG{n}{ptr\PYGZus{}t}\PYG{o}{*}\PYG{p}{)} \PYG{n}{sys\PYGZus{}close}\PYG{p}{)} \PYG{p}{\PYGZob{}}
+            \PYG{k}{return} \PYG{p}{(}\PYG{n}{ptr\PYGZus{}t}\PYG{p}{)} \PYG{o}{\PYGZam{}}\PYG{n}{sc\PYGZus{}table}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{];}
+        \PYG{p}{\PYGZcb{}}
+
+        \PYG{n}{addr} \PYG{o}{+=} \PYG{k}{sizeof}\PYG{p}{(}\PYG{k+kt}{void} \PYG{o}{*}\PYG{p}{);}
+    \PYG{p}{\PYGZcb{}}
+    \PYG{k}{return} \PYG{n+nb}{NULL}\PYG{p}{;}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

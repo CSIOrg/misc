@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{struct} \PYG{n}{hidden\PYGZus{}file} \PYG{p}{\PYGZob{}}
+    \PYG{k+kt}{char} \PYG{o}{*}\PYG{n}{path}\PYG{p}{;}
+    \PYG{k}{struct} \PYG{n}{list\PYGZus{}head} \PYG{n}{list}\PYG{p}{;}
+\PYG{p}{\PYGZcb{};}
+\end{Verbatim}
