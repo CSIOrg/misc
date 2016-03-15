@@ -55,25 +55,34 @@
 		\begin{frame}{Définition d'un rootkit}
 
     
-		\textbf{Rootkits en espace utilisateur}
-		
-		Ring 3, exploitation de vulnérabilité (privilege escalation), backdoors...
-		\begin{itemize}
-			\item lkr
-			\item trOn
-			\item ark
-		\end{itemize}
-		
-		\textbf{Rootkits en espace noyau}
-		
-		Ring 0, furtivité, backdoor, récupération d'informations (log, clé privée)
-		\begin{itemize}
-			\item Enye LKM
-			\item SucKIT - \texttt{/dev/mem}
-			\item ADORE Rootkit
-		\end{itemize}
-	\end{frame}
+			\textbf{Rootkits en espace utilisateur}
+			
+			Ring 3, exploitation de vulnérabilité (privilege escalation), backdoors...
+			\begin{itemize}
+				\item lkr
+				\item trOn
+				\item ark
+			\end{itemize}
+			
+			\textbf{Rootkits en espace noyau}
+			
+			Ring 0, furtivité, backdoor, récupération d'informations (log, clé privée)
+			\begin{itemize}
+				\item Enye LKM
+				\item SucKIT - \texttt{/dev/mem}
+				\item ADORE Rootkit
+			\end{itemize}
+		\end{frame}
 
+		\begin{frame}{CPU Ring shéma}
+
+    		\begin{figure}
+				\begin{center}
+					\includegraphics[scale=0.4]{ring.png}
+				\end{center}
+  		  	\end{figure}	
+			
+		\end{frame}		
 
 \section{Injection et persistance}
 
@@ -250,8 +259,8 @@
 		\item Fonctionnement des rootkits
 		\item Développement au niveau du Kernel
 		\item kernel panic, kernel panic, kernel panic
-		\item Évolution du rooktit par rapport aux version du kernel
-		\item Ajouter des nouvelles fonctionnalité au rootkit (chiffrement des données, obfuscation, améliorer la persistance...)
+		\item Évolution du rooktit par rapport aux versions du kernel
+		\item Ajouter des nouvelles fonctionnalités au rootkit (chiffrement des données, obfuscation, améliorer la persistance...)
 		
 	\end{itemize}
 
