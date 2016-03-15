@@ -1,8 +1,6 @@
-\beamer@endinputifotherversion {3.36pt}
-\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
-\beamer@sectionintoc {2}{Qu'est-ce qu'un rootkit ?}{4}{0}{2}
-\beamer@sectionintoc {3}{Injection et persistance}{6}{0}{3}
-\beamer@sectionintoc {4}{D\IeC {\'e}tournement du syst\IeC {\`e}me}{11}{0}{4}
-\beamer@sectionintoc {5}{Fonctionnalit\IeC {\'e}s}{14}{0}{5}
-\beamer@sectionintoc {6}{D\IeC {\'e}tection}{15}{0}{6}
-\beamer@sectionintoc {7}{Conclusion}{16}{0}{7}
+\beamer@endinputifotherversion {3.24pt}
+\beamer@sectionintoc {2}{Qu'est-ce qu'un rootkit ?}{4}{0}{1}
+\beamer@sectionintoc {3}{Injection et persistance}{7}{0}{2}
+\beamer@sectionintoc {4}{D\IeC {\'e}tournement du syst\IeC {\`e}me}{13}{0}{3}
+\beamer@sectionintoc {5}{Fonctionnalit\IeC {\'e}s}{24}{0}{4}
+\beamer@sectionintoc {6}{D\IeC {\'e}tection}{31}{0}{5}

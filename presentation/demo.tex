@@ -4,6 +4,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{booktabs}
+\usepackage{dirtytalk}
 \usepackage[scale=2]{ccicons}
 
 \usepackage{pgfplots}
@@ -17,7 +18,7 @@
 \date{\today}
 \author{Thomas Le Bourlot, Maxime Peterlin, Martial Puygrenier}
 \institute{Université de Bordeaux}
-%\titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+% \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo_blk}}
 
 \begin{document}
 
@@ -47,7 +48,7 @@
 	\begin{frame}{Définition d'un rootkit}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Rootktit}: "outil de dissimulation d'activité", le but est d'obtenir et de pérenniser un accès (généralement non autorisé) à un ordinateur de la manière la plus furtive possible.
+		\textbf{Rootktit}: \say{outil de dissimulation} ayant pour but de pérenniser un accès (généralement non autorisé) à une machine de manière furtive.
     \end{alertblock}
     
 	\end{frame}
@@ -55,18 +56,23 @@
 		\begin{frame}{Définition d'un rootkit}
 
     
-		\textbf{Rootkits en espace utilisateur}
+		\begin{alertblock}{Rootkits en espace utilisateur}
+	    \end{alertblock}
+		\vspace{-0.60cm}
 		
-		Ring 3, exploitation de vulnérabilité (privilege escalation), backdoors...
+		Ring 3, exploitation de vulnérabilités (privilege escalation), backdoors, etc.
 		\begin{itemize}
 			\item lkr
 			\item trOn
 			\item ark
 		\end{itemize}
 		
-		\textbf{Rootkits en espace noyau}
+    
+		\begin{alertblock}{Rootkits en espace noyau}
+	    \end{alertblock}
+		\vspace{-0.60cm}
 		
-		Ring 0, furtivité, backdoor, récupération d'informations (log, clé privée)
+		Ring 0, furtivité, backdoor, récupération d'informations (logs, clé privée, etc.)
 		\begin{itemize}
 			\item Enye LKM
 			\item SucKIT - \texttt{/dev/mem}
@@ -78,7 +84,9 @@
 \section{Injection et persistance}
 
 	\begin{frame}{Injection en mémoire kernel}
-		\textbf{Techniques d'injection}
+		\begin{alertblock}{Techniques d'injection}
+	    \end{alertblock}
+		\vspace{-0.60cm}
 		\begin{itemize}
 			\item Exploits kernel
 			\item Firewire
@@ -87,21 +95,59 @@
 		\end{itemize}
 	\end{frame}
 
-	\begin{frame}{Injection en mémoire kernel : \texttt{/dev/mem}}
-		\texttt{/dev/mem} permet un accès direct à la mémoire physique de machine.
+	\begin{frame}{Injection en mémoire kernel}
+		\begin{alertblock}{/dev/mem}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Accès direct à la mémoire physique
+			\item Potentiellement plus discret qu'une injection via LKM
+			\item Kernel v2.6.26 $\rightarrow$ \texttt{CONFIG\_STRICT\_DEVMEM}
+			\item Kernel v4.x.x $\rightarrow$ \alert{désactivée par défaut}
+		\end{itemize}
 	\end{frame}
 
-	\begin{frame}{Injection en mémoire kernel : LKM}
-		Les Loadable Kernel Modules (LKM) ...
+	\begin{frame}{Injection en mémoire kernel}
+		\begin{alertblock}{LKM : Loadable Kernel Modules}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Modification du kernel pendant l'exécution
+			\item Injection simple via \alert{\texttt{insmod}}, \alert{\texttt{modprobe}}
+			\item ... mais détection tout aussi facile avec \alert{\texttt{lsmod}}, \alert{\texttt{modinfo}}, ...
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Camouflage d'un LKM}
+		\begin{alertblock}{Méthode \#1}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Suppression de l'entrée dans la liste chaînée des LKM
+			\item Module retiré au niveau du VFS \\
+			$\rightarrow$ \alert{kobject\_del(\&THIS\_MODULE$\rightarrow$mobj.kobj)}
+		\end{itemize}
+
+		\begin{alertblock}{Méthode \#2}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Modification de la fonction de suppression des modules
+			\item Le système considère que le module a été retiré, mais le code est toujours présent
+		\end{itemize}
+
+		\alert{La seconde méthode est plus complexe et n'apporte pas de réels avantages. Elle permettait surtout de contourner un outil de détection basé sur \texttt{/dev/mem}.}
+
+
 	\end{frame}
 
 	\begin{frame}{Persistance}
 		
 		\begin{itemize}
 			\item Un module kernel n'est pas persistant par défaut
-			\item définit dans \texttt{/etc/modules}
-			\item Le nom du module injecté doit paraitre légitime (\texttt{graphics.ko}, \texttt{audio.ko}...)
-			\item \alert{l'utilisateur ne doit pas supprimer le module ou le nom du module dans le fichier \texttt{/etc/modules} sinon perte de la persistance}.
+			\item Définition dans \texttt{/etc/modules}
+			\item Le nom du module injecté doit paraître légitime (\texttt{graphics.ko}, \texttt{audio.ko}...)
+			\item \alert{l'utilisateur ne doit pas supprimer le module ou le nom du module dans le fichier \texttt{/etc/modules} sinon perte de la persistance.}
 		\end{itemize}
 
 		
@@ -118,20 +164,121 @@
 	% Syscalls
 	% VFS
 	
+	\begin{frame}{Détournement du système}
+		\begin{alertblock}{Deux méthodes étudiées}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Appels système
+			\item Virtual File System
+		\end{itemize}
+		\alert{\texttt{rkduck} est basé uniquement sur le détournement du VFS.}
+	\end{frame}
+
 	\begin{frame}{Appels système}
-		TODO
+
+		\begin{alertblock}{Méthodes de détournement}
+		\begin{enumerate}
+			\item Modification de la table des appels système
+			\item Modification du pointeur utilisé par le gestionnaire des appels système
+			\item Modification de l'\texttt{Interrupt Descriptor Table}
+			\item ...
+		\end{enumerate}
+	    \end{alertblock}
+	\end{frame}
+
+	\begin{frame}{Appels système}
+		\begin{alertblock}{Hook sur la table des appels système}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Recherche de l'adresse de la table par force brute
+			\begin{enumerate}
+				\item Choix d'un appel système dont on récupère l'adresse $\rightarrow$ \alert{sys\_close}
+				\item Pour chaque adresse testé, on regarde si elle pointe vers \alert{sys\_close}.
+				\item Si oui $\rightarrow$ \texttt{syscall\_table} = \texttt{bf\_sys\_close} - \texttt{sys\_close\_offset}
+			\end{enumerate}
+			\item Changement des droits sur la page contenant la table $\rightarrow$ \alert{+w}
+			\item Modification du pointeur de l'appel système à détourner pour qu'il soit redirigé vers une fonction malveillante
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{Appels système}
+
+		\begin{alertblock}{Inconvénients}
+	    \end{alertblock}
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Facilement détectable
+			\item Cacher des fichiers, des connexions, etc. est plus compliqué que s'attaquer directement au VFS.
+		\end{itemize}
 	\end{frame}
 
 	\begin{frame}{\texttt{Virtual File System} (VFS)}
-		TODO
+		\begin{alertblock}{Définition}
+			\textbf{VFS} : couche d'abstraction entre le kernel et le système de fichiers utilisé (ext3, ext4, etc.)
+	    \end{alertblock}	 
+		\textbf{Cible privilégiée pour camoufler des informations.}
+	\end{frame}
+
+	\begin{frame}{\texttt{Virtual File System} (VFS)}
+		\begin{alertblock}{Comment manipuler le contenu d'un dossier ?}
+	    \end{alertblock}	 
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Appel système \textbf{getdents}\\
+			 \alert{getdents} $\rightarrow$ \alert{iterate} $\rightarrow$ \alert{filldir}
+			\item Modification de \textbf{iterate} pour avoir \\
+			\alert{getdents} $\rightarrow$ \alert{iterate} $\rightarrow$ \alert{hijacked\_filldir}
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{\texttt{Virtual File System} (VFS)}
+		\begin{alertblock}{Détournement de \texttt{iterate}}
+	    \end{alertblock}	 
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Récupération d'un pointeur vers la fonction $\rightarrow$ \alert{filp\_open}
+			\item Sauvegarde, puis modification des premières instructions de la fonction
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{\texttt{Virtual File System} (VFS)}
+		\begin{figure}
+			\begin{center}
+				\includegraphics[scale=0.3]{vfs_iterate_original_to_hijacked.png}
+			\end{center}
+		\end{figure}
+	\end{frame}
+
+	\begin{frame}{\texttt{Virtual File System} (VFS)}
+		\begin{alertblock}{hijacked\_iterate}
+	    \end{alertblock}	 
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Modification du pointeur vers \alert{filldir}
+			\item Préambule de \alert{iterate} remplacé par les instructions originales
+			\item Appel de la fonction \alert{iterate} originale
+			\item Préambule de \alert{iterate} remplacé par les instructions de détournement
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{\texttt{Virtual File System} (VFS)}
+		\begin{alertblock}{Modification de filldir}
+	    \end{alertblock}	 
+		\vspace{-0.60cm}
+		\begin{itemize}
+			\item Si le fichier passé en argument doit être caché, 0 est renvoyé
+			\item Sinon, la fonction \alert{filldir} originale est appelée
+		\end{itemize}
 	\end{frame}
 
 \section{Fonctionnalités}
 
-\begin{frame}{Backdoor }
+\begin{frame}{Backdoor}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Backdoor}: "porte dérobée", s'apparente une fonctionnalité inconnue de l'utilisateur légitime, qui donne un accès secret au system.
+		\textbf{Backdoor} : \say{porte dérobée}, fonctionnalité inconnue de l'utilisateur légitime donnant un accès au système.
     \end{alertblock}
     
 	\begin{alertblock}{Types}
@@ -143,7 +290,7 @@
 
 \end{frame}
 
-\begin{frame}{Backdoor - reverse shell}
+\begin{frame}{Backdoor - Reverse shell}
 	
 	\begin{alertblock}{reverse shell}
 		  \begin{figure}
@@ -157,7 +304,7 @@
 \end{frame}
 
 
-\begin{frame}{Backdoor - bind shell}
+\begin{frame}{Backdoor - Bind shell}
 	
 	\begin{alertblock}{bind shell}
 		  \begin{figure}
@@ -172,21 +319,21 @@
 
 \begin{frame}{Backdoor - Activation}
 	
-	\begin{alertblock}{Définition}
-		\textbf{Backdoor}: "porte dérobée", s'apparente une fonctionnalité inconnue de l'utilisateur légitime, qui donne un accès secret au system.
-    \end{alertblock}
+	% \begin{alertblock}{Définition}
+	% 	\textbf{Backdoor}: "porte dérobée", s'apparente une fonctionnalité inconnue de l'utilisateur légitime, qui donne un accès secret au system.
+ %    \end{alertblock}
     
-	\begin{alertblock}{Types}
-		\begin{enumerate}
-			\item reverse shell
-			\item bind shell
-		\end{enumerate}
-    \end{alertblock}
+	% \begin{alertblock}{Types}
+	% 	\begin{enumerate}
+	% 		\item Reverse shell
+	% 		\item Bind shell
+	% 	\end{enumerate}
+ %    \end{alertblock}
     
 	\begin{alertblock}{Activation}
 		\begin{enumerate}
 			\item timer callback
-			\item packet ICMP
+			\item paquet ICMP
 			\item port knocking
 		\end{enumerate}
     \end{alertblock}
@@ -197,7 +344,7 @@
 \begin{frame}{Keylogger}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Keylogger}: "enregistreur de frappe", un logiciel espion inconnue de l'utilisateur légitime, qui enregistre toutes les actions clavier.
+		\textbf{Keylogger} : \say{enregistreur de frappes}, un logiciel espion inconnu de l'utilisateur légitime enregistrant toutes les actions clavier.
     \end{alertblock}
 
 \end{frame}
@@ -205,12 +352,12 @@
 \begin{frame}{Furtivité}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Furtivité}:  effacement de traces, masquage de l'activité et des communications...
+		\textbf{Furtivité} : effacement de traces, masquage de l'activité et des communications...
     \end{alertblock}
 	\begin{itemize}
 		\item processus
 		\item fichiers
-		\item dossiers
+		\item connexions
 		\item utilisateurs
 	\end{itemize}	 
 
@@ -221,17 +368,19 @@
 
 \begin{frame}{Méthodes}
 	
-	\begin{enumerate}
-		\item recherche d'anomalies
-		\item comparaison des signatures des modules kernel
-	\end{enumerate}
+	\begin{alertblock}{}
+		\begin{enumerate}
+			\item Recherche d'anomalies, analyse comportementale, etc.
+			\item Comparaison des signatures des modules kernel
+		\end{enumerate}
+    \end{alertblock}
 	
 
 \end{frame}
 
 \begin{frame}{Outils}
 	
-	Différents outils de détection de rootkits
+	\textbf{Outils de détection de rootkits}
 	\begin{itemize}
 		\item \href{http://rkhunter.sourceforge.net/}{RkHunter} - \alert{warning}
 		\item \href{http://www.chkrootkit.org/}{Chkrootkit} - {\color[rgb]{0,0.8,0.3} no warning}
@@ -246,22 +395,23 @@
 
 \begin{frame}{Conclusion}
 	
+	\begin{alertblock}{}
 	\begin{itemize}
 		\item Fonctionnement des rootkits
-		\item Développement au niveau du Kernel
+		\item Développement kernel
 		\item kernel panic, kernel panic, kernel panic
-		\item Évolution du rooktit par rapport aux version du kernel
-		\item Ajouter des nouvelles fonctionnalité au rootkit (chiffrement des données, obfuscation, améliorer la persistance...)
-		
+		\item Évolution du rooktit par rapport aux versions du kernel
+		\item Ajout de nouvelles fonctionnalitées au rootkit (chiffrement des données, obfuscation, amélioration de la persistance...)
 	\end{itemize}
+    \end{alertblock}
 
 \end{frame}
 
 \begin{frame}{Conclusion}
 
-  \begin{center}Le code source \texttt{rkduck} est disponibles à l'adresse suivante : \end{center}
+  \begin{center}Le code source de \texttt{rkduck} est disponible à l'adresse suivante : \end{center}
 
-  \begin{center}\url{github.com/QuokkaLight/rkduck}\end{center}
+  \begin{center}\url{https://github.com/QuokkaLight/rkduck}\end{center}
   
   \begin{figure}
 	\begin{center}
@@ -272,7 +422,7 @@
 \end{frame}
 
 
-\plain{Questions?}
+\plain{Questions ?}
 
 
 
