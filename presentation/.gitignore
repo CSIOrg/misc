@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *.aux
 *.glo
 *.idx
@@ -23,30 +22,4 @@
 *.out
 *.synctex.gz
 ._.DS_Store
-=======
-*.aux
-*.glo
-*.idx
-*.log
-*.toc
-*.ist
-*.acn
-*.acr
-*.alg
-*.bbl
-*.blg
-*.dvi
-*.glg
-*.gls
-*.ilg
-*.ind
-*.lof
-*.lot
-*.maf
-*.mtc
-*.mtc1
-*.out
-*.synctex.gz
-._.DS_Store
->>>>>>> 9bf6bb5e871afbbb678ca073c57a0efb3ba50830
 .DS_Store

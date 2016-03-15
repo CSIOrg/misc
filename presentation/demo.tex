@@ -4,7 +4,6 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{booktabs}
-\usepackage{dirtytalk}
 \usepackage[scale=2]{ccicons}
 
 \usepackage{pgfplots}
@@ -48,40 +47,13 @@
 	\begin{frame}{Définition d'un rootkit}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Rootktit}: \say{outil de dissimulation} ayant pour but de pérenniser un accès (généralement non autorisé) à une machine de manière furtive.
+		\textbf{Rootktit}: "outil de dissimulation", ayant pour but de pérenniser un accès (généralement non autorisé) à une machine de manière furtive.
     \end{alertblock}
     
 	\end{frame}
 	
 		\begin{frame}{Définition d'un rootkit}
 
-    
-<<<<<<< HEAD
-		\begin{alertblock}{Rootkits en espace utilisateur}
-	    \end{alertblock}
-		\vspace{-0.60cm}
-		
-		Ring 3, exploitation de vulnérabilités (privilege escalation), backdoors, etc.
-		\begin{itemize}
-			\item lkr
-			\item trOn
-			\item ark
-		\end{itemize}
-		
-    
-		\begin{alertblock}{Rootkits en espace noyau}
-	    \end{alertblock}
-		\vspace{-0.60cm}
-		
-		Ring 0, furtivité, backdoor, récupération d'informations (logs, clé privée, etc.)
-		\begin{itemize}
-			\item Enye LKM
-			\item SucKIT - \texttt{/dev/mem}
-			\item ADORE Rootkit
-		\end{itemize}
-	\end{frame}
-
-=======
 			\textbf{Rootkits en espace utilisateur}
 			
 			Ring 3, exploitation de vulnérabilité (privilege escalation), backdoors...
@@ -110,7 +82,6 @@
   		  	\end{figure}	
 			
 		\end{frame}		
->>>>>>> b3f2b91796a59cba4e70110e01345b03a78d9f88
 
 \section{Injection et persistance}
 
@@ -309,7 +280,7 @@
 \begin{frame}{Backdoor}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Backdoor} : \say{porte dérobée}, fonctionnalité inconnue de l'utilisateur légitime donnant un accès au système.
+		\textbf{Backdoor} : "porte dérobée", fonctionnalité inconnue de l'utilisateur légitime donnant un accès au système.
     \end{alertblock}
     
 	\begin{alertblock}{Types}
@@ -375,7 +346,7 @@
 \begin{frame}{Keylogger}
 	
 	\begin{alertblock}{Définition}
-		\textbf{Keylogger} : \say{enregistreur de frappes}, un logiciel espion inconnu de l'utilisateur légitime enregistrant toutes les actions clavier.
+		\textbf{Keylogger} : "enregistreur de frappes", un logiciel espion inconnu de l'utilisateur légitime enregistrant toutes les actions clavier.
     \end{alertblock}
 
 \end{frame}
@@ -432,12 +403,8 @@
 		\item Développement kernel
 		\item kernel panic, kernel panic, kernel panic
 		\item Évolution du rooktit par rapport aux versions du kernel
-<<<<<<< HEAD
-		\item Ajout de nouvelles fonctionnalitées au rootkit (chiffrement des données, obfuscation, amélioration de la persistance...)
-=======
 		\item Ajouter des nouvelles fonctionnalités au rootkit (chiffrement des données, obfuscation, améliorer la persistance...)
 		
->>>>>>> b3f2b91796a59cba4e70110e01345b03a78d9f88
 	\end{itemize}
     \end{alertblock}
 
